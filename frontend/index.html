@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Commerce Website</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <!-- Navbar -->
+  <nav class="bg-blue-600 p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
+      <ul class="flex space-x-4" id="navbarLinks">
+        <li><a href="/" class="text-white hover:underline">Home</a></li>
+        <li><a href="/profile" class="text-white hover:underline hidden" id="profile">Profile</a></li>
+        <li><a href="/register" class="text-white hover:underline" id="registerLink">Register</a></li>
+        <li><a href="/login" class="text-white hover:underline" id="loginLink">Login</a></li>
+        <li><a href="/order-history" class="text-white hover:underline hidden" id="orderHistory">Order History</a></li>
+        <li><a href="/logout" class="text-white hover:underline hidden" id="logoutLink">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container mx-auto mt-8">
+    <div class="text-center">
+      <h2 class="text-4xl font-bold mb-4">Welcome to Our E-Commerce Website</h2>
+      <p class="text-lg text-gray-700">Explore our wide range of products and enjoy shopping with us.</p>
+    </div>
+
+    <!-- Product Browse Section -->
+    <div class="flex justify-center space-x-6 mt-10">
+      <div class="bg-white p-8 rounded-lg shadow-lg max-w-lg mx-auto">
+        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Browse Our Products</h3>
+        <p class="text-gray-600 mb-4">We offer a variety of products for every need. From electronics to clothing, we have something for everyone. Click the button below to explore our product listings!</p>
+        <button id="shopNowBtn" class="bg-blue-600 text-white px-6 py-2 rounded-full text-lg hover:bg-blue-700 transition duration-300">Shop Now</button>
+      </div>
+      
+      <!-- Manage Products Section -->
+      <div class="bg-white p-8 rounded-lg shadow-lg max-w-lg mx-auto">
+        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Manage Our Products</h3>
+        <p class="text-gray-600 mb-4">As an admin, you can manage the products in our store. Add new products or update existing ones with ease. Click below to start managing our products.</p>
+        <button id="manageProductsBtn" class="bg-green-600 text-white px-6 py-2 rounded-full text-lg hover:bg-green-700 transition duration-300">Manage Products</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isLoggedIn = false;
+
+    // Function to check if the user is logged in
+    async function checkLoginStatus() {
+      try {
+        const response = await fetch('/check-session', {
+          method: 'GET',
+          credentials: 'same-origin',
+        });
+        const result = await response.json();
+
+        if (response.ok && result.isLoggedIn) {
+          isLoggedIn = true;
+          document.getElementById('registerLink').classList.add('hidden');
+          document.getElementById('loginLink').classList.add('hidden');
+          document.getElementById('logoutLink').classList.remove('hidden');
+          document.getElementById('orderHistory').classList.remove('hidden');
+          document.getElementById('profile').classList.remove('hidden');
+        }
+      } catch (error) {
+        console.error('Error checking login status:', error);
+      }
+    }
+
+    // Redirect user based on login status
+    function handleRedirect(targetPage) {
+      if (!isLoggedIn) {
+        alert('You need to log in first to access this page.');
+        window.location.href = '/login';
+      } else {
+        window.location.href = targetPage;
+      }
+    }
+
+    // Add event listeners for buttons
+    document.getElementById('shopNowBtn').addEventListener('click', () => {
+      handleRedirect('/product-listing');
+    });
+
+    document.getElementById('manageProductsBtn').addEventListener('click', () => {
+      handleRedirect('/manage-products');
+    });
+
+    // Handle logout functionality
+    document.getElementById('logoutLink').addEventListener('click', async function(event) {
+      event.preventDefault();
+      await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+      window.location.reload();
+    });
+
+    // Run the check on page load
+    checkLoginStatus();
+  </script>
+</body>
+</html>

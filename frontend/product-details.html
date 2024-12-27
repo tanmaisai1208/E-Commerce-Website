@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <!-- Navbar -->
+  <nav class="bg-blue-600 p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
+      <ul class="flex space-x-4">
+        <li><a href="/" class="text-white hover:underline">Home</a></li>
+        <li><a href="/profile" class="text-white hover:underline">Profile</a></li>
+        <li><a href="/cart" class="text-white hover:underline">Cart</a></li>
+        <li><a href="/order-history" class="text-white hover:underline" id="orderHistory">Order History</a></li>
+        <li><a href="/logout" id="logoutLink" class="text-white hover:underline">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Product Details -->
+  <div id="productDetails" class="container mx-auto mt-6 p-6 bg-white rounded-lg shadow-lg">
+    <!-- Product details will be dynamically added here -->
+  </div>
+
+  <!-- Reviews Section -->
+  <div class="container mx-auto mt-6 p-6 bg-white rounded-lg shadow-lg">
+    <h3 class="text-2xl font-semibold mb-4">Reviews</h3>
+    <div id="reviewsContainer">
+      <!-- Reviews will be dynamically added here -->
+    </div>
+
+    <!-- Review Form -->
+    <h3 class="text-lg font-semibold mb-2">Add a Review</h3>
+    <form id="reviewForm" class="space-y-4">
+      <textarea id="reviewText" class="w-full p-2 border rounded" placeholder="Write your review here..." required></textarea>
+      <div>
+        <label for="rating" class="mr-2">Rating:</label>
+        <select id="rating" class="border p-2 rounded" required>
+          <option value="1">1 - Poor</option>
+          <option value="2">2 - Fair</option>
+          <option value="3">3 - Good</option>
+          <option value="4">4 - Very Good</option>
+          <option value="5">5 - Excellent</option>
+        </select>
+      </div>
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Submit Review</button>
+    </form>
+  </div>
+
+  <script>
+    async function fetchProductDetails() {
+      const productId = window.location.pathname.split('/').pop(); // Get product ID from URL
+      try {
+        const response = await fetch(`/api/product-details/${productId}`);
+        const product = await response.json();
+        renderProductDetails(product);
+        fetchProductReviews(productId); // Fetch reviews after product details
+      } catch (error) {
+        console.error('Error fetching product details:', error);
+      }
+    }
+
+    function renderProductDetails(product) {
+      const productDetailsContainer = document.getElementById('productDetails');
+      productDetailsContainer.innerHTML = `
+        <div class="flex flex-col md:flex-row">
+          <img src="../${product.imageUrl}" alt="${product.name}" class="w-full md:w-1/2 h-80 object-cover mb-4 rounded-lg">
+          <div class="md:ml-8 md:w-1/2">
+            <h2 class="text-3xl font-semibold mb-4">${product.name}</h2>
+            <p class="text-gray-800 mb-4">${product.description}</p>
+            <p class="text-xl font-bold text-blue-600 mb-4">$${product.price}</p>
+            <div class="flex items-center mb-4">
+              <p class="text-sm text-gray-500 mr-2">Rating:</p>
+              <div class="flex items-center">
+                ${'★'.repeat(Math.floor(product.rating))} <!-- Filled stars for rating -->
+                ${'☆'.repeat(5 - Math.floor(product.rating))} <!-- Empty stars for remaining -->
+              </div>
+            </div>
+            <button id="addToCartBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                Add to Cart
+            </button>
+          </div>
+        </div>
+      `;
+      
+      // Attach event listener for "Add to Cart" button
+      document.getElementById('addToCartBtn').addEventListener('click', async () => {
+        console.log("Add to Cart Button Clicked"); 
+        const productId = window.location.pathname.split('/').pop(); // Get product ID from URL
+        const quantity = 1; // Default quantity
+
+        try {
+            const response = await fetch('/api/add-to-cart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ productId, quantity }), // Send the product ID and quantity
+            });
+
+            const result = await response.json();
+            if (result.success) {
+             alert('Product added to cart!');
+            } else {
+             alert('Failed to add product to cart.');
+            }
+        } catch (error) {
+            console.error('Error adding product to cart:', error);
+        }
+      });
+    }
+
+    async function fetchProductReviews(productId) {
+      try {
+        const response = await fetch(`/api/product-reviews/${productId}`);
+        const reviews = await response.json();
+        renderReviews(reviews);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      }
+    }
+
+    function renderReviews(reviews) {
+      const reviewsContainer = document.getElementById('reviewsContainer');
+      reviewsContainer.innerHTML = reviews.map(review => `
+        <div class="border-b pb-4 mb-4">
+          <div class="flex justify-between items-center">
+            <span class="font-semibold">${review.username}</span>
+            <span class="text-yellow-500">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</span>
+          </div>
+          <p class="text-gray-700">${review.text}</p>
+        </div>
+      `).join('');
+    }
+
+    // Handle review submission
+    document.getElementById('reviewForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const productId = window.location.pathname.split('/').pop(); // Get product ID from URL
+      const reviewText = document.getElementById('reviewText').value;
+      const rating = document.getElementById('rating').value;
+      const username = 'Guest'; // Placeholder for username, can be modified based on logged-in user
+
+      try {
+        const response = await fetch('/api/add-review', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productId, reviewText, rating, username }),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          alert('Review submitted!');
+          fetchProductReviews(productId); // Refresh reviews after submission
+          document.getElementById('reviewForm').reset(); // Reset the form
+        } else {
+          alert('Failed to submit review.');
+        }
+      } catch (error) {
+        console.error('Error submitting review:', error);
+      }
+    });
+
+    // Handle logout functionality
+    document.getElementById('logoutLink').addEventListener('click', async function(event) {
+      event.preventDefault();
+      
+      try {
+        const response = await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+        if (response.ok) {
+        // Redirect to the homepage after successful logout
+        window.location.href = '/';
+        } else {
+          console.error('Logout failed');
+          alert('Error logging out. Please try again.');
+        }
+      } catch (error) {
+          console.error('Error during logout:', error);
+          alert('An unexpected error occurred. Please try again.');
+      }
+    });
+
+    // Fetch product details and reviews when the page loads
+    fetchProductDetails();
+  </script>
+</body>
+</html>

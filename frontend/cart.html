@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+  <!-- Navbar -->
+  <nav class="bg-blue-600 p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
+      <ul class="flex space-x-4">
+        <li><a href="/" class="text-white hover:underline">Home</a></li>
+        <li><a href="/profile" class="text-white hover:underline">Profile</a></li>
+        <li><a href="/cart" class="text-white hover:underline">Cart</a></li>
+        <li><a href="/order-history" class="text-white hover:underline" id="orderHistory">Order History</a></li>
+        <li><a href="/logout" id="logoutLink" class="text-white hover:underline">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Cart Items -->
+  <div class="container mx-auto mt-6">
+    <h2 class="text-3xl font-bold mb-4">Your Cart</h2>
+    <div id="cartItems" class="space-y-4">
+      <!-- Cart items will be displayed here -->
+    </div>
+    <div class="mt-6">
+      <p class="text-xl font-bold">Total: ₹<span id="totalPrice">0.00</span></p>
+    </div>
+    <div class="mt-6 text-center">
+      <button id="proceedToCheckout" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 hidden">
+        Proceed to Checkout
+      </button>
+    </div>
+  </div>
+
+  <script>
+    async function fetchCart() {
+      try {
+        const response = await fetch('/api/get-cart');
+        const cart = await response.json();
+        renderCart(cart);
+      } catch (error) {
+        console.error('Error fetching cart:', error);
+      }
+    }
+
+    async function removeFromCart(productId) {
+      try {
+        const response = await fetch(`/api/remove-from-cart/${productId}`, {
+          method: 'DELETE',
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          alert('Product removed from cart!');
+          fetchCart(); // Refresh the cart after removal
+        } else {
+          alert('Failed to remove product from cart.');
+        }
+      } catch (error) {
+        console.error('Error removing product from cart:', error);
+      }
+    }
+
+    async function updateQuantity(productId, newQuantity) {
+      try {
+        const response = await fetch('/api/update-cart-quantity', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productId, quantity: newQuantity }),
+        });
+        const result = await response.json();
+        if (result.success) {
+          fetchCart(); // Re-fetch cart to update the UI
+        } else {
+          alert('Failed to update quantity.');
+        }
+      } catch (error) {
+        console.error('Error updating quantity:', error);
+      }
+    }
+    
+    function renderCart(cart) {
+      const cartItemsContainer = document.getElementById('cartItems');
+      const proceedToCheckoutButton = document.getElementById('proceedToCheckout');
+      let totalPrice = 0;
+
+      if (cart.length === 0) {
+        cartItemsContainer.innerHTML = `
+          <p class="text-center text-gray-500">Your cart is empty.</p>
+        `;
+        proceedToCheckoutButton.classList.add('hidden');
+      } else {
+        cartItemsContainer.innerHTML = cart.map(item => {
+          totalPrice += item.price * item.quantity;
+          return `
+            <div class="flex justify-between items-center bg-white p-4 rounded shadow-lg">
+              <div class="flex items-center">
+                <img src="../${item.imageUrl}" alt="${item.name}" class="w-16 h-16 rounded mr-4">
+                <span>${item.name}</span>
+              </div>
+              <div class="flex items-center">
+                <button onclick="updateQuantity('${item.productId}', ${item.quantity - 1})" 
+                        class="text-xl font-bold text-red-600 px-2">-</button>
+                <span class="mx-2">Quantity: ${item.quantity}</span>
+                <button onclick="updateQuantity('${item.productId}', ${item.quantity + 1})" 
+                        class="text-xl font-bold text-green-600 px-2">+</button>
+                <span class="ml-4">₹${(item.price * item.quantity).toFixed(2)}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('totalPrice').innerText = totalPrice.toFixed(2);
+        proceedToCheckoutButton.classList.remove('hidden');
+
+        // Attach the event listener here
+        proceedToCheckoutButton.addEventListener('click', proceedToCheckout);
+        console.log('Proceed to Checkout button visible and listener attached');
+      }
+    }
+
+    // Function to handle the "Proceed to Checkout" button click
+    async function proceedToCheckout() {
+      const paymentMethod = "Test Payment"; // Example static value; you can make this dynamic.
+      const shippingDetails = "Test Address"; // Example static value; you can collect this from a form.
+
+      if (!paymentMethod || !shippingDetails) {
+        alert('Payment method and shipping details are required.');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ paymentMethod, shippingDetails }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('Order placed successfully!');
+          // Redirect to the checkout page or order confirmation page
+          window.location.href = '/checkOut';
+        } else {
+          alert(result.error || 'Checkout failed. Please try again.');
+    }
+      } catch (error) {
+        console.error('Error during checkout:', error);
+        alert('Something went wrong. Please try again.');
+      }
+    }
+
+    // Handle logout functionality
+    document.getElementById('logoutLink').addEventListener('click', async function(event) {
+      event.preventDefault();
+      
+      try {
+        const response = await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+        if (response.ok) {
+          // Redirect to the homepage after successful logout
+          window.location.href = '/';
+        } else {
+          console.error('Logout failed');
+          alert('Error logging out. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error during logout:', error);
+        alert('An unexpected error occurred. Please try again.');
+      }
+    });
+
+    // Initial fetch of cart items
+    fetchCart();
+  </script>
+</body>
+</html>

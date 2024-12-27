@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+
+  <div class="bg-white p-10 rounded-lg shadow-lg text-center">
+    <h1 class="text-3xl font-semibold text-green-600">Thank You for Your Purchase!</h1>
+    <p class="mt-4 text-lg text-gray-700">Your order has been successfully placed.</p>
+    <p class="mt-4 text-sm text-gray-500">You will receive a confirmation email shortly.</p>
+    
+    <!-- Button container with flex layout to align buttons side by side -->
+    <div class="mt-6 flex justify-center gap-4">
+      <!-- Go to Home Button -->
+      <a href="/" class="px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600">
+        Go to Home
+      </a>
+      <!-- View Order History Button -->
+      <a href="/order-history" class="px-6 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600">
+        View Order History
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Listing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <!-- Navbar -->
+  <nav class="bg-blue-600 p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
+      <ul class="flex space-x-4">
+        <li><a href="/" class="text-white hover:underline">Home</a></li>
+        <li><a href="/profile" class="text-white hover:underline">Profile</a></li>
+        <li><a href="/cart" class="text-white hover:underline">Cart</a></li>
+        <li><a href="/order-history" class="text-white hover:underline" id="orderHistory">Order History</a></li>
+        <li><a href="/logout" id="logoutLink" class="text-white hover:underline">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Filters Section -->
+  <div class="container mx-auto mt-6">
+    <h2 class="text-3xl font-bold mb-4">Available Products</h2>
+    <div class="flex space-x-4 mb-6">
+      <select id="categoryFilter" class="p-2 border rounded">
+        <option value="">All Categories</option>
+        <option value="Electronics">Electronics</option>
+        <option value="Books">Books</option>
+        <option value="Clothing">Clothing</option>
+      </select>
+      <input type="number" id="minPriceFilter" placeholder="Min Price" class="p-2 border rounded">
+      <input type="number" id="maxPriceFilter" placeholder="Max Price" class="p-2 border rounded">
+      <!-- Add sorting by ratings -->
+      <select id="ratingSort" class="p-2 border rounded">
+        <option value="">Sort by Rating</option>
+        <option value="asc">Lowest to Highest</option>
+        <option value="desc">Highest to Lowest</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Product Listing -->
+  <div class="container mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    <div class="grid"></div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const categorySelect = document.getElementById('categoryFilter');
+      const minPriceInput = document.getElementById('minPriceFilter');
+      const maxPriceInput = document.getElementById('maxPriceFilter');
+      const ratingSortSelect = document.getElementById('ratingSort');
+      const productContainer = document.querySelector('.grid');
+
+      const fetchProducts = async () => {
+        try {
+          const category = categorySelect.value;
+          const minPrice = minPriceInput.value;
+          const maxPrice = maxPriceInput.value;
+          const ratingSort = ratingSortSelect.value;
+
+          let query = '/api/products?';
+          if (category) query += `category=${category}&`;
+          if (minPrice) query += `minPrice=${minPrice}&`;
+          if (maxPrice) query += `maxPrice=${maxPrice}&`;
+          if (ratingSort) query += `ratingSort=${ratingSort}`;
+
+          const response = await fetch(query);
+          const products = await response.json();
+
+          // Clear existing products
+          productContainer.innerHTML = '';
+
+          // Populate products
+          products.forEach(product => {
+            const productCard = `
+              <div class="bg-white p-6 rounded-lg shadow-lg">
+                <img src="../${product.imageUrl}" alt="${product.name}" class="w-full h-40 object-cover mb-4 rounded-lg">
+                <h3 class="text-xl font-semibold mb-2">${product.name}</h3>
+                <p class="text-gray-600 mb-2">Category: ${product.category}</p>
+                <p class="text-gray-800 mb-4">${product.description}</p>
+                <p class="text-xl font-bold text-blue-600 mb-4">₹${product.price}</p>
+                <div class="flex items-center mb-4">
+                  <p class="text-sm text-gray-500 mr-2 ">Rating:</p>
+                  <div class="flex items-center">
+                    ${'★'.repeat(Math.floor(product.rating))}  <!-- Filled stars for rating -->
+                    ${'☆'.repeat(5 - Math.floor(product.rating))} <!-- Empty stars for remaining -->
+                  </div>
+                </div>
+                <a href="/product-details/${product._id}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Details</a>
+              </div>
+            `;
+            productContainer.innerHTML += productCard;
+          });
+        } catch (error) {
+          console.error('Error loading products:', error);
+        }
+      };
+
+      // Add event listeners for filters
+      categorySelect.addEventListener('change', fetchProducts);
+      minPriceInput.addEventListener('input', fetchProducts);
+      maxPriceInput.addEventListener('input', fetchProducts);
+      ratingSortSelect.addEventListener('change', fetchProducts);
+
+      // Initial fetch
+      fetchProducts();
+    });
+
+    // Handle logout functionality
+    document.getElementById('logoutLink').addEventListener('click', async function(event) {
+      event.preventDefault();
+      
+      try {
+        const response = await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+        if (response.ok) {
+        // Redirect to the homepage after successful logout
+        window.location.href = '/';
+        } else {
+          console.error('Logout failed');
+          alert('Error logging out. Please try again.');
+        }
+      } catch (error) {
+          console.error('Error during logout:', error);
+          alert('An unexpected error occurred. Please try again.');
+      }
+    });
+
+  </script>
+</body>
+</html>

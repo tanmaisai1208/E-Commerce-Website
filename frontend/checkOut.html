@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <!-- Navbar -->
+  <nav class="bg-blue-600 p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
+      <ul class="flex space-x-4">
+        <li><a href="/" class="text-white hover:underline">Home</a></li>
+        <li><a href="/profile" class="text-white hover:underline">Profile</a></li>
+        <li><a href="/cart" class="text-white hover:underline">Cart</a></li>
+        <li><a href="/order-history" class="text-white hover:underline" id="orderHistory">Order History</a></li>
+        <li><a href="/logout" id="logoutLink" class="text-white hover:underline">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Checkout Section -->
+  <div class="container mx-auto mt-6 p-6 bg-white rounded-lg shadow-lg">
+    <h2 class="text-3xl font-bold mb-4">Checkout</h2>
+
+    <!-- Order Review -->
+    <section id="orderReview" class="mb-6">
+      <h3 class="text-xl font-semibold mb-4">Your Order</h3>
+      <div id="orderItems" class="space-y-4">
+        <!-- Order items will be dynamically loaded -->
+      </div>
+      <div class="mt-4">
+        <p class="text-lg font-bold">Total: ₹<span id="orderTotal">0.00</span></p>
+      </div>
+    </section>
+
+    <!-- Shipping Details -->
+    <section class="mb-6">
+      <h3 class="text-xl font-semibold mb-4">Shipping Details</h3>
+      <form id="shippingForm" class="space-y-4">
+        <div>
+          <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name</label>
+          <input type="text" id="fullName" name="fullName" class="mt-1 block w-full p-2 border border-gray-300 rounded" required>
+        </div>
+        <div>
+          <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+          <input type="text" id="address" name="address" class="mt-1 block w-full p-2 border border-gray-300 rounded" required>
+        </div>
+        <div>
+          <label for="city" class="block text-sm font-medium text-gray-700">City</label>
+          <input type="text" id="city" name="city" class="mt-1 block w-full p-2 border border-gray-300 rounded" required>
+        </div>
+        <div>
+          <label for="zipCode" class="block text-sm font-medium text-gray-700">Zip Code</label>
+          <input type="text" id="zipCode" name="zipCode" class="mt-1 block w-full p-2 border border-gray-300 rounded" required>
+        </div>
+      </form>
+    </section>
+
+    <!-- Payment -->
+    <section>
+      <h3 class="text-xl font-semibold mb-4">Payment</h3>
+      <!-- Razorpay Payment -->
+      <div class="pay-form-div">
+        <form class="pay-form" action="/api/initiate-payment" method="POST">
+          <input type="hidden" name="name" value="Order Payment">
+          <input type="hidden" id="hiddenTotalAmount" name="totalAmount" value="0">
+          <input type="submit" value="Pay Now" class="pay bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <script>
+  let totalPrice = 0;
+
+// Load order details
+async function loadOrderDetails() {
+  try {
+    const response = await fetch('/api/get-cart');
+    const cart = await response.json();
+    renderOrderReview(cart);
+  } catch (error) {
+    console.error('Error fetching cart:', error);
+  }
+}
+
+function renderOrderReview(cart) {
+  const orderItemsContainer = document.getElementById('orderItems');
+  totalPrice = 0;
+  orderItemsContainer.innerHTML = cart.map(item => {
+    totalPrice += item.price * item.quantity;
+    return `
+      <div class="flex justify-between items-center bg-gray-50 p-4 rounded shadow">
+        <span>${item.name} (x${item.quantity})</span>
+        <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+      </div>
+    `;
+  }).join('');
+
+  // Update total price
+  document.getElementById('orderTotal').innerText = totalPrice.toFixed(2);
+  document.getElementById('hiddenTotalAmount').value = (totalPrice).toFixed(0); // Amount in cents
+}
+
+$(document).ready(function () {
+  $('.pay-form').submit(function (e) {
+    e.preventDefault();
+
+    // Check if the shipping form fields are filled
+    const fullName = $('#fullName').val();
+    const address = $('#address').val();
+    const city = $('#city').val();
+    const zipCode = $('#zipCode').val();
+
+    if (!fullName || !address || !city || !zipCode) {
+      alert("Please fill in all the shipping details before proceeding with the payment.");
+      return; // Don't submit the form if details are missing
+    }
+
+    const formData = $(this).serialize();
+
+    // Initiate Razorpay payment
+    $.ajax({
+      url: "/api/initiate-payment",
+      type: "POST",
+      data: formData,
+      success: function (res) {
+        if (res.success) {
+          var options = {
+            key: res.key_id,
+            amount: res.amount,
+            currency: "INR",
+            name: "E-Commerce Payment",
+            order_id: res.order_id,
+            handler: function (response) {
+              // This is where the payment success logic goes
+              alert("Payment Successful!");
+              console.log("Order ID to update status:", res.order_id);
+
+              // Update order status after payment
+              $.ajax({
+                url: "/api/update-order-status",  // New route to update order status
+                type: "POST",
+                data: { orderId: res.order_id },
+                success: function(updateRes) {
+                  if (updateRes.success) {
+                    // Redirect to confirmation page after updating order status
+                    window.location.href = '/confirmation';
+                  } else {
+                    alert('Error updating order status.');
+                  }
+                },
+                error: function(err) {
+                  console.error(err);
+                  alert("An error occurred while updating the order status.");
+                }
+              });
+
+              // Clear the cart on the backend
+              $.ajax({
+                url: "/api/clear-cart", // New endpoint to clear the cart
+                type: "POST",
+                success: function () {
+                  window.location.href = '/confirmation'; // Redirect to confirmation page
+                },
+                error: function (err) {
+                  console.error(err);
+                  alert("An error occurred while clearing the cart.");
+                }
+              });
+            },
+            theme: {
+              color: "#2300a3"
+            }
+          };
+          
+          // Open Razorpay payment modal
+          var razorpayObject = new Razorpay(options);
+          razorpayObject.open();
+        } else {
+          alert(res.msg); // Show message if payment initiation failed
+        }
+      },
+      error: function (err) {
+        console.error(err);
+        alert("An error occurred while processing the payment.");
+      }
+    });
+  });
+});
+
+
+loadOrderDetails(); // Load order details on page load
+
+    // Handle logout functionality
+    document.getElementById('logoutLink').addEventListener('click', async function(event) {
+      event.preventDefault();
+      
+      try {
+        const response = await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+        if (response.ok) {
+          // Redirect to the homepage after successful logout
+          window.location.href = '/';
+        } else {
+          console.error('Logout failed');
+          alert('Error logging out. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error during logout:', error);
+        alert('An unexpected error occurred. Please try again.');
+      }
+    });
+  </script>
+</body>
+</html>

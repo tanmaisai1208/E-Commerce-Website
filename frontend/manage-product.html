@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Products</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <!-- Navbar -->
+  <nav class="bg-blue-600 p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
+      <ul class="flex space-x-4" id="navbarLinks">
+        <li><a href="/" class="text-white hover:underline">Home</a></li>
+        <li><a href="/profile" class="text-white hover:underline">Profile</a></li>
+        <li><a href="/product-listing" class="text-white hover:underline">Products</a></li>
+        <li><a href="/order-history" class="text-white hover:underline" id="orderHistory">Order History</a></li>
+        <li><a href="/logout" class="text-white hover:underline" id="logoutLink">Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Manage Products -->
+  <div class="container mx-auto mt-8 flex">
+    <!-- Left Menu Section (20% of the page) -->
+    <div class="w-1/5 bg-gray-200 p-6">
+      <h3 class="text-xl font-semibold mb-4">Manage Products</h3>
+      <ul>
+        <li><a href="/create-product" class="block text-blue-600 hover:underline mb-4">Create Product</a></li>
+        <li><a href="/update-product" class="block text-blue-600 hover:underline">Update Product</a></li>
+      </ul>
+    </div>
+
+    <!-- Right Content Section (80% of the page) -->
+    <div class="w-4/5 p-6">
+      <h2 class="text-3xl font-semibold mb-6">Select an Action</h2>
+      <p class="text-lg text-gray-700 mb-8">Choose an option from the left menu to manage products. You can create new products or update existing ones.</p>
+    </div>
+  </div>
+
+  <script>
+    // Handle logout functionality
+    document.getElementById('logoutLink').addEventListener('click', async function(event) {
+      event.preventDefault();
+      
+      try {
+        const response = await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+        if (response.ok) {
+        // Redirect to the homepage after successful logout
+        window.location.href = '/';
+        } else {
+          console.error('Logout failed');
+          alert('Error logging out. Please try again.');
+        }
+      } catch (error) {
+          console.error('Error during logout:', error);
+          alert('An unexpected error occurred. Please try again.');
+      }
+    });
+
+  </script>
+
+</body>
+</html>
