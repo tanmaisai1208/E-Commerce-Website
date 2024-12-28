@@ -29,6 +29,32 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+const SECRET_PASSWORD = '@123';
+
+// Route: Become Admin
+router.post('/become-admin', async (req, res) => {
+    const { email, secretPassword } = req.body;
+    if (secretPassword !== SECRET_PASSWORD) {
+        return res.status(403).send('Invalid secret password.');
+    }
+    try {
+        const user = await User.findOneAndUpdate(
+            { email },
+            { role: 'admin' },
+            { new: true } // Return the updated document
+        );
+        req.session.role = "admin";
+        if (user) {
+            res.send(`Congratulations! The user with email "${email}" is now an admin.`);
+        } else {
+            res.status(404).send('User not found.');
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('An error occurred while processing your request.');
+    }
+});
+
 // Get all products with filters
 router.get('/api/products', async (req, res) => {
   try {

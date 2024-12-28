@@ -10,7 +10,9 @@ require("dotenv").config();
 
 // Import Custom Modules
 const productRoutes = require("./routes/productRoutes");
+const adminRoute = require('./routes/adminRoutes'); 
 const User = require("./models/user");
+const { adminAuth } = require('./middleware/auth'); 
 
 
 const path = require("path");
@@ -27,23 +29,33 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Use product routes with /api prefix
+// Use the routes with /api prefix
 app.use(productRoutes);
+app.use( adminRoute);
 
 // Database connection
 mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error(err));
+.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+.then(() => console.log("MongoDB connected"))
+.catch((err) => console.error(err));
 
 
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, "../frontend")));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Serve the admin page only if the user is an admin
+app.get('/admin', adminAuth, (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/admin.html'));
+});
+
 // Catch-all route to serve the homepage
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/index.html"));
+});
+
+app.get("/become-admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/become-admin.html"));
 });
 
 // Route to serve products-listing page
@@ -162,6 +174,7 @@ app.post("/register", async (req, res) => {
       email,
       password: hashedPassword,
       contact,
+      role: 'user',
     });
 
     // Save the user in the database
@@ -199,6 +212,7 @@ app.post("/login", async (req, res) => {
     // Generate a JWT token (for authentication)
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
     req.session.user = user;
+    req.session.role = user.role;
     // Respond with the token
     res.status(200).json({ message: "Login successful", token });
   } catch (error) {

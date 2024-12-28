@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-64 h-screen bg-indigo-600 text-white p-5">
+            <h2 class="text-3xl font-semibold mb-10">Admin Panel</h2>
+            <ul>
+                <li><a href="#manage-products" class="block py-3 px-5 hover:bg-indigo-700 rounded-lg text-lg">Manage Products</a></li>
+                <li><a href="#view-orders" class="block py-3 px-5 hover:bg-indigo-700 rounded-lg text-lg">View Orders</a></li>
+                <li><a href="#manage-users" class="block py-3 px-5 hover:bg-indigo-700 rounded-lg text-lg">Manage Users</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-8">
+            <div class="space-y-8">
+
+                <!-- Manage Products Section -->
+                <section id="manage-products">
+                    <h3 class="text-2xl font-semibold mb-4">Manage Products</h3>
+                    <button class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700" id="add-product-btn">Add Product</button>
+                    <div id="products-list" class="mt-6">
+                        <!-- Products table will go here -->
+                    </div>
+                </section>
+
+                <!-- View Orders Section -->
+                <section id="view-orders" class="mt-8">
+                    <h3 class="text-2xl font-semibold mb-4">View Orders</h3>
+                    <div id="orders-list" class="mt-6">
+                        <!-- Orders table will go here -->
+                    </div>
+                </section>
+
+                <!-- Manage Users Section -->
+                <section id="manage-users" class="mt-8">
+                    <h3 class="text-2xl font-semibold mb-4">Manage Users</h3>
+                    <div id="users-list" class="mt-6">
+                        <!-- Users table will go here -->
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div id="add-product-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-1/3 space-y-6">
+            <h3 class="text-2xl font-semibold mb-4">Add Product</h3>
+            <form id="add-product-form">
+                <input type="text" id="product-name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Product Name" required>
+                <input type="number" id="product-price" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Price" required>
+                <textarea id="product-description" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Product Description" required></textarea>
+                <button type="submit" class="bg-indigo-600 text-white w-full py-2 rounded-lg hover:bg-indigo-700">Add Product</button>
+                <button type="button" id="close-modal" class="bg-red-500 text-white w-full py-2 rounded-lg hover:bg-red-600">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Show Add Product Modal
+        document.getElementById('add-product-btn').addEventListener('click', function() {
+            document.getElementById('add-product-modal').classList.remove('hidden');
+        });
+
+        // Close Add Product Modal
+        document.getElementById('close-modal').addEventListener('click', function() {
+            document.getElementById('add-product-modal').classList.add('hidden');
+        });
+
+        // Handle Add Product Form Submit
+        document.getElementById('add-product-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const productName = document.getElementById('product-name').value;
+            const productPrice = document.getElementById('product-price').value;
+            const productDescription = document.getElementById('product-description').value;
+
+            // Send this data to the backend to save it in the database
+            console.log({
+                name: productName,
+                price: productPrice,
+                description: productDescription,
+            });
+
+            // Close the modal after submission
+            document.getElementById('add-product-modal').classList.add('hidden');
+        });
+
+        // Function to load Products
+        function loadProducts() {
+            const products = [
+                { id: 1, name: "Product 1", price: "$10", description: "This is product 1." },
+                { id: 2, name: "Product 2", price: "$20", description: "This is product 2." },
+            ];
+
+            const productTable = `
+                <table class="w-full table-auto border-collapse bg-white shadow-md rounded-lg">
+                    <thead>
+                        <tr class="bg-indigo-600 text-white">
+                            <th class="px-4 py-2">Name</th>
+                            <th class="px-4 py-2">Price</th>
+                            <th class="px-4 py-2">Description</th>
+                            <th class="px-4 py-2">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${products.map(product => `
+                            <tr class="hover:bg-gray-100">
+                                <td class="border px-4 py-2">${product.name}</td>
+                                <td class="border px-4 py-2">${product.price}</td>
+                                <td class="border px-4 py-2">${product.description}</td>
+                                <td class="border px-4 py-2">
+                                    <button class="bg-yellow-500 text-white p-2 rounded-lg hover:bg-yellow-600">Edit</button>
+                                    <button class="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600">Delete</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('products-list').innerHTML = productTable;
+        }
+
+        // Function to load Orders
+        function loadOrders() {
+            const orders = [
+                { orderId: 1, customerName: "John Doe", total: "$30", status: "Pending" },
+                { orderId: 2, customerName: "Jane Smith", total: "$50", status: "Shipped" },
+            ];
+
+            const orderTable = `
+                <table class="w-full table-auto border-collapse bg-white shadow-md rounded-lg">
+                    <thead>
+                        <tr class="bg-indigo-600 text-white">
+                            <th class="px-4 py-2">Order ID</th>
+                            <th class="px-4 py-2">Customer</th>
+                            <th class="px-4 py-2">Total</th>
+                            <th class="px-4 py-2">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map(order => `
+                            <tr class="hover:bg-gray-100">
+                                <td class="border px-4 py-2">${order.orderId}</td>
+                                <td class="border px-4 py-2">${order.customerName}</td>
+                                <td class="border px-4 py-2">${order.total}</td>
+                                <td class="border px-4 py-2">${order.status}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('orders-list').innerHTML = orderTable;
+        }
+
+        // Function to load Users
+        function loadUsers() {
+            const users = [
+                { userId: 1, name: "Alice", email: "alice@example.com", role: "Admin" },
+                { userId: 2, name: "Bob", email: "bob@example.com", role: "User" },
+            ];
+
+            const userTable = `
+                <table class="w-full table-auto border-collapse bg-white shadow-md rounded-lg">
+                    <thead>
+                        <tr class="bg-indigo-600 text-white">
+                            <th class="px-4 py-2">User ID</th>
+                            <th class="px-4 py-2">Name</th>
+                            <th class="px-4 py-2">Email</th>
+                            <th class="px-4 py-2">Role</th>
+                            <th class="px-4 py-2">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => `
+                            <tr class="hover:bg-gray-100">
+                                <td class="border px-4 py-2">${user.userId}</td>
+                                <td class="border px-4 py-2">${user.name}</td>
+                                <td class="border px-4 py-2">${user.email}</td>
+                                <td class="border px-4 py-2">${user.role}</td>
+                                <td class="border px-4 py-2">
+                                    <button class="bg-yellow-500 text-white p-2 rounded-lg hover:bg-yellow-600">Edit</button>
+                                    <button class="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600">Delete</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('users-list').innerHTML = userTable;
+        }
+
+        // Load data on page load
+        window.onload = () => {
+            loadProducts();
+            loadOrders();
+            loadUsers();
+        }
+    </script>
+
+</body>
+</html>
