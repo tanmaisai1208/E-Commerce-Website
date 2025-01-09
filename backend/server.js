@@ -12,7 +12,7 @@ require("dotenv").config();
 const productRoutes = require("./routes/productRoutes");
 const adminRoute = require('./routes/adminRoutes'); 
 const User = require("./models/user");
-const { adminAuth } = require('./middleware/auth'); 
+const { adminAuth, isAuth } = require('./middleware/auth'); 
 
 
 const path = require("path");
@@ -31,7 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Use the routes with /api prefix
 app.use(productRoutes);
-app.use( adminRoute);
+app.use(adminRoute);
 
 // Database connection
 mongoose
@@ -42,54 +42,55 @@ mongoose
 
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static('images'));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Serve the admin page only if the user is an admin
-app.get('/admin', adminAuth, (req, res) => {
+app.get('/admin', isAuth, adminAuth, (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/admin.html'));
 });
 
 // Catch-all route to serve the homepage
-app.get("/", (req, res) => {
+app.get("/", isAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/index.html"));
 });
 
-app.get("/become-admin", (req, res) => {
+app.get("/become-admin", isAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/become-admin.html"));
 });
 
 // Route to serve products-listing page
-app.get("/product-listing", (req, res) => {
+app.get("/product-listing", isAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/product-listing.html"));
 });
 
 // Route to serve the Manage Products page
-app.get("/manage-products", (req, res) => {
+app.get("/manage-products", adminAuth, isAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/manage-product.html"));
 });
 
 // Route for Create Product Page
-app.get('/create-product', (req, res) => {
+app.get('/create-product', adminAuth, isAuth, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/create-product.html'));
 });
 
 // Route for Update Product Page
-app.get('/update-product', (req, res) => {
+app.get('/update-product', adminAuth, isAuth, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/update-product.html'));
 });
 
 // Handle GET request for the Edit Product page
-app.get('/edit-product/:id', (req, res) => {
+app.get('/edit-product/:id', adminAuth, isAuth, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/edit-product.html'));
 });
 
 // Serve the Product Details page
-app.get('/product-details/:id', (req, res) => {
+app.get('/product-details/:id', isAuth, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/product-details.html'));
 });
 
 // Route to get cart data
-app.get('/api/get-cart', (req, res) => {
+app.get('/api/get-cart', isAuth, (req, res) => {
   if (req.session.cart) {
     const cartDetails = req.session.cart.map(item => {
       // Fetch product details from database using productId
@@ -108,24 +109,24 @@ app.get('/api/get-cart', (req, res) => {
 });
 
 // Serve cart.html when user navigates to /cart
-app.get("/cart", (req, res) => { 
+app.get("/cart", isAuth, (req, res) => { 
   res.sendFile(path.join(__dirname, "../frontend/cart.html")); 
 });
 
 // Serve cart.html when user navigates to /cart
-app.get("/checkOut", (req, res) => { 
+app.get("/checkOut", isAuth, (req, res) => { 
   res.sendFile(path.join(__dirname, "../frontend/checkOut.html")); 
 });
 
-app.get("/confirmation", (req, res) => { 
+app.get("/confirmation", isAuth, (req, res) => { 
   res.sendFile(path.join(__dirname, "../frontend/confirmation.html")); 
 });
 
-app.get("/order-history", (req, res) => { 
+app.get("/order-history", isAuth, (req, res) => { 
   res.sendFile(path.join(__dirname, "../frontend/orderHistory.html")); 
 });
 
-app.get("/profile", (req, res) => { 
+app.get("/profile", isAuth, (req, res) => { 
   res.sendFile(path.join(__dirname, "../frontend/profile.html")); 
 });
 
@@ -136,6 +137,7 @@ app.get("/register", (req, res) => {
   
 // Route for login page
 app.get("/login", (req, res) => {
+    delete req.session.message;
     res.sendFile(path.join(__dirname, "../frontend/login.html"));
 });
 

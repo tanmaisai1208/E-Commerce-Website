@@ -7,44 +7,61 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
-  <!-- Navbar -->
-  <nav class="bg-blue-600 p-4">
-    <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
-      <ul class="flex space-x-4">
-        <li><a href="/" class="text-white hover:underline">Home</a></li>
-        <li><a href="/profile" class="text-white hover:underline">Profile</a></li>
-        <li><a href="/manage-products" class="text-white hover:underline">Manage Products</a></li>
-        <li><a href="/order-history" class="text-white hover:underline" id="orderHistory">Order History</a></li>
-        <li><a href="/logout" class="text-white hover:underline" id="logoutLink">Logout</a></li>
-      </ul>
-    </div>
-  </nav>
+<!-- Navbar -->
+<nav class="bg-blue-600 p-4">
+  <div class="container mx-auto flex justify-between items-center">
+    <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
+    <button id="menuToggle" class="text-white text-xl sm:hidden"> <!-- Visible only on phone screens -->
+      ☰
+    </button>
+    <ul id="menuItems" class="hidden sm:flex space-x-4">
+      <li><a href="/" class="text-white hover:underline">Home</a></li>
+      <li><a href="/manage-products" class="text-white hover:underline">Manage Products</a></li>
+      <li><a href="/order-history" class="text-white hover:underline" id="orderHistory">Order History</a></li>
+      <li><a href="/logout" class="text-white hover:underline" id="logoutLink">Logout</a></li>
+    </ul>
+  </div>
+  <!-- Mobile Dropdown -->
+  <ul id="mobileMenu" class="hidden sm:hidden mt-4 space-y-2 bg-blue-700 p-4 rounded">
+    <li><a href="/" class="text-white block hover:underline">Home</a></li>
+    <li><a href="/profile" class="text-white block hover:underline">Profile</a></li>
+    <li><a href="/manage-products" class="text-white block hover:underline">Manage Products</a></li>
+    <li><a href="/order-history" class="text-white block hover:underline" id="orderHistory">Order History</a></li>
+    <li><a href="/logout" class="text-white block hover:underline" id="logoutLink">Logout</a></li>
+  </ul>
+</nav>
 
   <!-- Filters Section -->
   <div class="container mx-auto mt-6">
     <h2 class="text-3xl font-bold mb-4">Update Products</h2>
-    <div class="flex space-x-4 mb-6">
-      <input id="categoryFilter" type="text" placeholder="Category" class="p-2 border rounded w-1/4">
-      <input id="minPriceFilter" type="number" placeholder="Min Price" class="p-2 border rounded w-1/4">
-      <input id="maxPriceFilter" type="number" placeholder="Max Price" class="p-2 border rounded w-1/4">
-      <select id="sortByRating" class="p-2 border rounded w-1/4">
+    <div class="flex flex-wrap space-y-4 lg:space-y-0 lg:flex-nowrap lg:space-x-4 mb-6">
+      <input id="categoryFilter" type="text" placeholder="Category" class="p-2 border rounded w-full lg:w-1/4">
+      <input id="minPriceFilter" type="number" placeholder="Min Price" class="p-2 border rounded w-full lg:w-1/4">
+      <input id="maxPriceFilter" type="number" placeholder="Max Price" class="p-2 border rounded w-full lg:w-1/4">
+      <select id="sortByRating" class="p-2 border rounded w-full lg:w-1/4">
         <option value="">Sort by Rating</option>
         <option value="asc">Lowest to Highest</option>
         <option value="desc">Highest to Lowest</option>
       </select>
-      <button id="applyFilters" class="bg-blue-600 text-white px-4 py-2 rounded">Apply Filters</button>
+      <button id="applyFilters" class="bg-blue-600 text-white px-4 py-2 rounded w-full lg:w-auto">Apply Filters</button>
     </div>
   </div>
 
   <!-- Products Section -->
   <div class="container mx-auto">
-    <div id="productContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    <div id="productContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <!-- Product Cards will be dynamically added here -->
     </div>
   </div>
 
   <script>
+
+    // Toggle Navbar Menu
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      const menuItems = document.getElementById('mobileMenu');
+      menuItems.classList.toggle('hidden');
+    });
+
     async function fetchProducts(filters = {}) {
       const { category, minPrice, maxPrice, sort } = filters;
       let query = '/api/products?';
@@ -74,7 +91,7 @@
               ${'☆'.repeat(5 - Math.floor(product.rating))} <!-- Empty stars for remaining -->
             </div>
           </div>
-          <a href="/edit-product/${product._id}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Edit Product</a>
+          <a href="/edit-product/${product._id}?source=update-product" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Edit Product</a>
           <button onclick="confirmDelete('${product._id}')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Delete Product</button>
         </div>
       `).join('');

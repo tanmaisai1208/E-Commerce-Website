@@ -5,21 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Product</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom Styles for Navbar and Form Responsiveness */
+    @media (max-width: 768px) {
+      /* Navbar adjustments for small screens */
+      #navbarLinks {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      #navbarLinks li {
+        margin-top: 0.5rem;
+      }
+      /* Center form on smaller screens */
+      .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      .max-w-lg {
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      /* Make the navbar smaller on very small screens */
+      .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+
+      #navbarLinks li {
+        font-size: 14px;
+      }
+
+      /* Adjust the form button width on mobile */
+      button[type="submit"] {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body class="bg-gray-100 text-gray-900">
-  <!-- Navbar -->
-  <nav class="bg-blue-600 p-4">
-    <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
-      <ul class="flex space-x-4">
-        <li><a href="/" class="text-white hover:underline">Home</a></li>
-        <li><a href="/profile" class="text-white hover:underline">Profile</a></li>
-        <li><a href="/manage-products" class="text-white hover:underline">Manage Products</a></li>
-        <li><a href="/order-history" class="text-white hover:underline" id="orderHistory">Order History</a></li>
-        <li><a href="/logout" class="text-white hover:underline" id="logoutLink">Logout</a></li>
-      </ul>
-    </div>
-  </nav>
+<!-- Navbar -->
+<nav class="bg-blue-600 p-4">
+  <div class="container mx-auto flex justify-between items-center">
+    <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
+    <!-- Hamburger Menu -->
+    <button id="hamburgerMenu" class="text-white md:hidden focus:outline-none">
+      ☰
+    </button>
+    <ul class="hidden md:flex space-x-4 flex-wrap sm:flex-nowrap" id="navbarLinks">
+      <li><a href="/" class="text-white hover:underline py-2 px-4">Home</a></li>
+      <li><a href="/manage-products" class="text-white hover:underline py-2 px-4">Manage Products</a></li>
+      <li><a href="/order-history" class="text-white hover:underline py-2 px-4" id="orderHistory">Order History</a></li>
+      <li><a href="/logout" id="logoutLink" class="text-white hover:underline py-2 px-4">Logout</a></li>
+    </ul>
+  </div>
+  <!-- Hamburger Dropdown -->
+  <ul class="hidden bg-blue-600 p-4" id="dropdownMenu">
+    <li class="mb-2"><a href="/" class="text-white block hover:underline">Home</a></li>
+    <li class="mb-2"><a href="/manage-products" class="text-white block hover:underline">Manage Products</a></li>
+    <li class="mb-2"><a href="/order-history" class="text-white block hover:underline" id="orderHistory">Order History</a></li>
+    <li><a href="/logout" class="text-white block hover:underline" id="logoutLink">Logout</a></li>
+  </ul>
+</nav>
 
   <!-- Edit Product Form -->
   <div class="container mx-auto mt-8">
@@ -48,6 +96,13 @@
   </div>
 
   <script>
+    // Hamburger menu toggle
+    const hamburgerMenu = document.getElementById('hamburgerMenu');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    hamburgerMenu.addEventListener('click', () => {
+      dropdownMenu.classList.toggle('hidden');
+    });
+
     async function fetchProductDetails(productId) {
       const response = await fetch(`/api/product/${productId}`);
       const product = await response.json();
@@ -61,18 +116,37 @@
     const productId = window.location.pathname.split('/').pop();
     fetchProductDetails(productId);
 
+    // Get the source from the query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const source = urlParams.get('source');
+
     document.getElementById('editProductForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       const formData = new FormData(event.target);
-      const response = await fetch(`/api/update-product/${productId}`, {
-        method: 'POST',
-        body: formData,
-      });
-      if (response.ok) {
-        alert('Product updated successfully!');
-        window.location.href = '/update-product';
-      } else {
-        alert('Failed to update product.');
+
+      try {
+        const response = await fetch(`/api/update-product/${productId}`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          alert('Product updated successfully!');
+
+          // Redirect back based on where the edit button was clicked
+          if (source === 'update-product') {
+            window.location.href = '/update-product'; // Redirect back to the Update Products page
+          } else if (source === 'admin') {
+            window.location.href = '/admin'; // Redirect back to the Admin Panel
+          } else {
+            window.location.href = '/manage-products'; // Default fallback
+          }
+        } else {
+          alert('Failed to update product.');
+        }
+      } catch (error) {
+        console.error('Error updating product:', error);
+        alert('An unexpected error occurred. Please try again.');
       }
     });
 
@@ -83,8 +157,8 @@
       try {
         const response = await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
         if (response.ok) {
-        // Redirect to the homepage after successful logout
-        window.location.href = '/';
+          // Redirect to the homepage after successful logout
+          window.location.href = '/';
         } else {
           console.error('Logout failed');
           alert('Error logging out. Please try again.');
@@ -94,7 +168,6 @@
           alert('An unexpected error occurred. Please try again.');
       }
     });
-    
   </script>
 </body>
 </html>

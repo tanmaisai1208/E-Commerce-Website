@@ -6,9 +6,8 @@ const Review = require('../models/review');
 const Order = require('../models/order');
 const multer = require('multer'); // For handling image uploads
 const path = require('path');
-const stripe = require('stripe')('sk_test_51QaBjgCoEzWLa0u1AXUO32o3FQ3VqXA9dopJLHtkKHolNXLMFXXsEFRrFsUGaaNNhMMzbnaym3R9KETDzcnYsTwg00guaetkv7');
 const Razorpay = require('razorpay');
-// const stripeInstance = stripe('sk_test_51QaBjgCoEzWLa0u1AXUO32o3FQ3VqXA9dopJLHtkKHolNXLMFXXsEFRrFsUGaaNNhMMzbnaym3R9KETDzcnYsTwg00guaetkv7');
+const order = require('../models/order');
 
 
 const { RAZORPAY_ID_KEY, RAZORPAY_SECRET_KEY } = process.env;
@@ -55,6 +54,30 @@ router.post('/become-admin', async (req, res) => {
     }
 });
 
+// Route to get user details
+router.get('/get-user-details', (req, res) => {
+  if (req.session && req.session.user) {
+    // Extract user details from the session
+    const userDetails = {
+      name: req.session.user.name,
+      email: req.session.user.email,
+      contact: req.session.user.contact,
+    };
+    res.status(200).json(userDetails);
+  } else {
+    // If user is not logged in
+    res.status(401).json({ message: 'User not logged in' });
+  }
+});
+
+router.get('/api/get-user-role', (req, res) => {
+  if (req.session && req.session.user) {
+    res.json({ role: req.session.role }); // Assuming role is stored in the session
+  } else {
+    res.status(401).json({ message: 'Unauthorized' });
+  }
+});
+
 // Get all products with filters
 router.get('/api/products', async (req, res) => {
   try {
@@ -91,19 +114,21 @@ router.get('/api/products', async (req, res) => {
 // Create a new product
 router.post('/api/create-product', upload.single('image'), async (req, res) => {
   try {
-    const { name, category, price, description } = req.body;
+    let { name, category, price, available, description } = req.body;
+    category = category.toLowerCase();
     const imageUrl = req.file ? req.file.path.replace(/\\/g, '/') : ''; // Convert backslashes to forward slashes
 
     const newProduct = new Product({
       name,
       category,
       price,
+      available,
       description,
       imageUrl,
     });
 
     await newProduct.save();
-    res.redirect('/manage-products');
+    res.redirect('/manage-products?success=true');
   } catch (err) {
     console.error('Error creating product:', err);
     res.status(500).json({ message: 'Error creating product' });
@@ -220,6 +245,8 @@ router.get('/api/get-cart', async (req, res) => {
               price: product.price,
               imageUrl: product.imageUrl,  // Assuming product has an imageUrl field
               quantity: item.quantity,
+              category: product.category,
+              rating: product.rating,
             };
           }
           return null;
@@ -295,20 +322,92 @@ router.get('/api/product-reviews/:productId', async (req, res) => {
 });
 
 // Add a review for a product
-router.post('/api/add-review', async (req, res) => {
-  const { productId, reviewText, rating, username } = req.body;
+router.post('/api/add-review', async (req, res) => { 
+  const { productId, reviewText, rating } = req.body;
+  const username = req.session.user ? req.session.user.name : 'Guest'; // Fetch username from session or use 'Guest' if not logged in
+  const userId = req.session.user ? req.session.user._id : null; // Get user ID from session
+
   try {
     const newReview = new Review({
       productId,
+      userId, // Include the userId from the session
       username,
       text: reviewText,
       rating: parseInt(rating),
     });
+
     await newReview.save();
+    
+    // Calculate the new average rating for the product
+    const reviews = await Review.find({ productId });
+    const totalRatings = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = (totalRatings / reviews.length).toFixed(2); // Round to 2 decimal places
+    // Update the product's rating
+    await Product.findByIdAndUpdate(productId, { rating: averageRating });
+    
     res.json({ success: true });
   } catch (error) {
     console.error('Error adding review:', error);
     res.status(500).json({ success: false, message: 'Failed to add review' });
+  }
+});
+
+// Edit review route
+router.put('/api/edit-review/:reviewId', async (req, res) => {
+  const { reviewText, rating } = req.body;
+  const { reviewId } = req.params;
+  const userId = req.session.user ? req.session.user._id : null; // Assuming user is logged in and we have user info in session
+
+  try {
+    // Find the review by ID
+    const review = await Review.findById(reviewId);
+    
+    // Check if the review exists and if the logged-in user is the one who created the review
+    if (!review) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+    
+    if (review.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: 'You can only edit your own review' });
+    }
+
+    // Update the review
+    review.text = reviewText;
+    review.rating = parseInt(rating);
+    await review.save();
+
+    res.json({ success: true, message: 'Review updated successfully' });
+  } catch (error) {
+    console.error('Error editing review:', error);
+    res.status(500).json({ message: 'Error editing review' });
+  }
+});
+
+// Delete review route
+router.delete('/api/delete-review/:reviewId', async (req, res) => {
+  const reviewId = req.params.reviewId;
+  const userId = req.session.user ? req.session.user._id : null; // Assuming user is logged in and we have user info in session
+
+  try {
+    // Find the review by ID
+    const review = await Review.findById(reviewId);
+
+    // Check if the review exists and if the logged-in user is the one who created the review
+    if (!review) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+
+    if (review.userId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: 'You can only delete your own review' });
+    }
+
+    // Delete the review
+    await review.deleteOne();
+
+    res.json({ success: true, message: 'Review deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    res.status(500).json({ message: 'Error deleting review' });
   }
 });
 
@@ -366,10 +465,9 @@ router.post('/api/checkout', async (req, res) => {
     status: 'Pending', // Order status
     createdAt: new Date(),
   });
-
+  console.log(orderId);
   try {
     await newOrder.save();
-    // Clear the cart after checkout
     // req.session.cart = [];
     res.json({ success: true, message: 'Order placed successfully', order: newOrder });
   } catch (error) {
@@ -380,22 +478,24 @@ router.post('/api/checkout', async (req, res) => {
 
 // Route to initiate Razorpay payment
 router.post('/api/initiate-payment', async (req, res) => {
-  const { totalAmount } = req.body; // Get the total amount from the request body
+  const { totalAmount, orderId} = req.body; // Get the total amount and order ID from the request body
   if (!totalAmount || totalAmount <= 0) {
-    return res.status(400).json({ success: false, msg: 'Invalid payment amount' });
+    return res.status(400).json({ success: false, msg: 'Invalid payment amount or invalid order ID' });
   }
 
   try {
     // Convert amount to paisa (smallest currency unit for INR) for Razorpay
-    const amountInPaisa = Math.round(totalAmount * 100);
+    const amountInPaisa = Math.round(totalAmount*100);
 
     // Create an order on Razorpay
     const options = {
+      // order_id: order.order_id,
+      order_id: orderId,
       amount: amountInPaisa,
       currency: 'INR', // Set the currency
       receipt: `receipt_${Date.now()}`, // Generate a unique receipt ID
     };
-
+    console.log('Razorpay options:', options);
     razorpayInstance.orders.create(options, (err, order) => {
       if (err) {
         console.error('Error creating Razorpay order:', err);
@@ -405,7 +505,8 @@ router.post('/api/initiate-payment', async (req, res) => {
       // Send the order details to the frontend for further processing
       res.status(200).json({
         success: true,
-        order_id: order.order_id,
+        order_id: orderId,
+        // order_id: order.order_id, // Use the order ID from the Razorpay response
         amount: order.amount,
         currency: order.currency,
         key_id: RAZORPAY_ID_KEY, // Pass the Razorpay key ID to the frontend
@@ -417,10 +518,12 @@ router.post('/api/initiate-payment', async (req, res) => {
   }
 });
 
+
 // New route to update order status after payment
 router.post('/api/update-order-status', async (req, res) => {
   console.log('update called');
   const { orderId } = req.body;
+  console.log(orderId);
   if (!orderId) {
     return res.status(400).json({ error: 'Order ID is required' });
   }
@@ -428,7 +531,6 @@ router.post('/api/update-order-status', async (req, res) => {
     const order = await Order.findOne({ order_id: orderId });
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
-      console.log('order not found');
     }
     console.log('order found');
     // Update the status to 'Completed'

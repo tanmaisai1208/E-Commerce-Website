@@ -5,7 +5,87 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>E-Commerce Website</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    #sidebar {
+      transition: transform 0.7s ease-in-out;
+    }
+    #userProfileIcon {
+       transition: transform 0.7s ease-in-out;
+       width: 50px; /* Fixed width */
+       height: 50px; /* Fixed height */
+       border-radius: 50%; /* Circular shape */
+       background-color: #1d77d8; /* Blue background for the icon */
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       margin-top: 20px; /* Spacing from the navbar */
+       margin-left: 20px; /* Spacing from the left side */
+       cursor: pointer;
+       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Slight shadow for the icon */
+     }
+
+    /* Media queries for smaller screens */
+    @media (max-width: 768px) {
+      #sidebar {
+        width: 100%;
+      }
+      .container {
+        margin-top: 1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+      #navbarLinks {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      #navbarLinks li {
+        padding: 0.5rem 0;
+      }
+      #sidebar {
+        width: 100%;
+      }
+      .bg-white {
+        padding: 4rem 2rem;
+      }
+      .text-center {
+        text-align: center;
+      }
+    }
+    
+    /* For extra small screens (phone view) */
+    @media (max-width: 480px) {
+  #navbarLinks {
+    text-align: center;
+  }
+  #userProfileIcon {
+    margin-left: 0;
+    margin-top: 10px;
+    width: 40px;
+    height: 40px;
+  }
+  .container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  .bg-white {
+    padding: 3rem 1rem;
+  }
+  .text-4xl {
+    font-size: 2rem;
+  }
+  .text-lg {
+    font-size: 1rem;
+  }
+  .flex {
+    display: flex;
+    flex-direction: column; /* Stack sections vertically */
+    align-items: center; /* Center the sections */
+    gap: 20px; /* Add space between them */
+  }
+}
+  </style>
 </head>
+
 <body class="bg-gray-100 text-gray-900">
   <!-- Navbar -->
   <nav class="bg-blue-600 p-4">
@@ -13,8 +93,6 @@
       <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
       <ul class="flex space-x-4" id="navbarLinks">
         <li><a href="/" class="text-white hover:underline">Home</a></li>
-        <li><a href="/profile" class="text-white hover:underline hidden" id="profile">Profile</a></li>
-        <li><a href="/become-admin" class="text-white hover:underline hidden" id="become-admin">Become-Admin</a></li>
         <li><a href="/admin" class="text-white hover:underline hidden" id="admin">Admin</a></li>
         <li><a href="/register" class="text-white hover:underline" id="registerLink">Register</a></li>
         <li><a href="/login" class="text-white hover:underline" id="loginLink">Login</a></li>
@@ -24,8 +102,47 @@
     </div>
   </nav>
 
+  <!-- User Profile Icon -->
+  <div id="userProfileIcon" class="mt-4 ml-4 bg-blue-600 text-white p-3 rounded-full cursor-pointer shadow-lg hidden">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.969 9.969 0 0112 15a9.969 9.969 0 016.879 2.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  </div>
+
+  <!-- Sidebar -->
+  <div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform -translate-x-full">
+    <div class="p-4 border-b flex justify-between items-center">
+      <button id="closeSidebarBtn" class="bg-blue-600 text-white p-2 rounded-full">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.969 9.969 0 0112 15a9.969 9.969 0 016.879 2.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </button>
+    </div>
+    <div class="p-4">
+      <!-- Grey Circle Placeholder -->
+      <div class="w-20 h-20 bg-gray-300 rounded-full mx-auto mb-4 flex items-center justify-center">
+        <span class="text-gray-600">80x80</span>
+      </div>
+      <h2 class="text-lg font-bold mb-4 text-center">User Details</h2>
+      <div class="mb-4 text-left">
+        <p class="text-sm font-semibold">Name:</p>
+        <p id="userName" class="text-gray-700">Loading...</p>
+      </div>
+      <div class="mb-4 text-left">
+        <p class="text-sm font-semibold">Email:</p>
+        <p id="userEmail" class="text-gray-700">Loading...</p>
+      </div>
+      <div class="mb-4 text-left">
+        <p class="text-sm font-semibold">Contact:</p>
+        <p id="userContact" class="text-gray-700">Loading...</p>
+      </div>
+      <button class="bg-blue-600 text-white px-4 py-2 rounded mb-4 w-full" onclick="window.location.href='/profile'">Edit Your Profile</button>
+      <button class="bg-green-600 text-white px-4 py-2 rounded w-full" onclick="window.location.href='/become-admin'">Become Admin</button>
+    </div>
+  </div>
+
   <!-- Main Content -->
-  <div class="container mx-auto mt-8">
+  <div class="container mx-auto">
     <div class="text-center">
       <h2 class="text-4xl font-bold mb-4">Welcome to Our E-Commerce Website</h2>
       <p class="text-lg text-gray-700">Explore our wide range of products and enjoy shopping with us.</p>
@@ -51,7 +168,6 @@
   <script>
     let isLoggedIn = false;
 
-    // Function to check if the user is logged in
     async function checkLoginStatus() {
       try {
         const response = await fetch('/check-session', {
@@ -66,32 +182,40 @@
           document.getElementById('loginLink').classList.add('hidden');
           document.getElementById('logoutLink').classList.remove('hidden');
           document.getElementById('orderHistory').classList.remove('hidden');
-          document.getElementById('profile').classList.remove('hidden');
-          document.getElementById('become-admin').classList.remove('hidden');
           document.getElementById('admin').classList.remove('hidden');
+          document.getElementById('userProfileIcon').classList.remove('hidden');
+
+          const userDetailsResponse = await fetch('/get-user-details', { method: 'GET', credentials: 'same-origin' });
+          const userDetails = await userDetailsResponse.json();
+          document.getElementById('userName').textContent = userDetails.name;
+          document.getElementById('userEmail').textContent = userDetails.email;
+          document.getElementById('userContact').textContent = userDetails.contact;
         }
       } catch (error) {
         console.error('Error checking login status:', error);
       }
     }
 
-    // Redirect user based on login status
-    function handleRedirect(targetPage) {
-      if (!isLoggedIn) {
-        alert('You need to log in first to access this page.');
-        window.location.href = '/login';
-      } else {
-        window.location.href = targetPage;
-      }
-    }
+    const userProfileIcon = document.getElementById('userProfileIcon');
+    userProfileIcon.addEventListener('click', () => {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.remove('-translate-x-full');
+      userProfileIcon.classList.add('hidden');
+    });
 
-    // Add event listeners for buttons
+    const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+    closeSidebarBtn.addEventListener('click', () => {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.add('-translate-x-full');
+      userProfileIcon.classList.remove('hidden');
+    });
+
     document.getElementById('shopNowBtn').addEventListener('click', () => {
-      handleRedirect('/product-listing');
+      window.location.href = '/product-listing';
     });
 
     document.getElementById('manageProductsBtn').addEventListener('click', () => {
-      handleRedirect('/manage-products');
+      window.location.href = '/manage-products';
     });
 
     // Handle logout functionality
@@ -100,8 +224,7 @@
       await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
       window.location.reload();
     });
-
-    // Run the check on page load
+    
     checkLoginStatus();
   </script>
 </body>

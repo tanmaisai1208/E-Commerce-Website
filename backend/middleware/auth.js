@@ -7,4 +7,13 @@ function adminAuth(req, res, next) {
     }
 }
 
-module.exports = { adminAuth };
+function isAuth(req, res, next) {
+    if (req.session.user) {
+      next(); // User is authenticated, proceed to next route
+    } else {
+      return res.redirect('/login?message=You%20need%20to%20login%20first%20to%20access%20this%20page');
+    }
+}
+  
+  
+module.exports = { adminAuth, isAuth };

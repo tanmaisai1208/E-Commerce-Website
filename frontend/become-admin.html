@@ -5,11 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media (min-width: 640px) {
+            /* Tablet and above */
+            .form-container {
+                width: 75%;
+                padding: 2rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            /* Laptop and above */
+            .form-container {
+                width: 50%;
+                padding: 3rem;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            /* Desktop and above */
+            .form-container {
+                width: 40%;
+                padding: 4rem;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <div class="flex justify-center items-center h-screen">
-        <div class="bg-white p-6 rounded shadow-md w-96">
-            <h2 class="text-2xl font-bold mb-4">Become Admin</h2>
+        <div class="form-container bg-white p-6 rounded shadow-md max-w-sm w-full">
+            <h2 class="text-2xl font-bold mb-4 text-center">Become Admin</h2>
             <form id="becomeAdminForm" class="space-y-4">
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
@@ -26,7 +51,7 @@
                     Become Admin
                 </button>
             </form>
-            <div id="responseMessage" class="mt-4 text-sm"></div>
+            <div id="responseMessage" class="mt-4 text-sm text-center"></div>
         </div>
     </div>
     <script>

@@ -56,17 +56,45 @@
 
     <!-- Add Product Modal -->
     <div id="add-product-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-        <div class="bg-white p-8 rounded-lg shadow-lg w-1/3 space-y-6">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-1/3 space-y-4">
             <h3 class="text-2xl font-semibold mb-4">Add Product</h3>
-            <form id="add-product-form">
-                <input type="text" id="product-name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Product Name" required>
-                <input type="number" id="product-price" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Price" required>
-                <textarea id="product-description" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Product Description" required></textarea>
-                <button type="submit" class="bg-indigo-600 text-white w-full py-2 rounded-lg hover:bg-indigo-700">Add Product</button>
-                <button type="button" id="close-modal" class="bg-red-500 text-white w-full py-2 rounded-lg hover:bg-red-600">Cancel</button>
+            <form action="/api/admin/products" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="product-name" class="block text-gray-700 font-semibold">Product Name</label>
+                    <input type="text" id="product-name" name="name" class="w-full p-1 border border-gray-300 rounded-lg mt-1" required>
+                </div>
+                <div class="mb-3">
+                    <label for="product-category" class="block text-gray-700 font-semibold">Category</label>
+                    <input type="text" id="product-category" name="category" class="w-full p-1 border border-gray-300 rounded-lg mt-1" required>
+                </div>
+                <div class="mb-3">
+                    <label for="product-price" class="block text-gray-700 font-semibold">Price</label>
+                    <input type="number" id="product-price" name="price" class="w-full p-1 border border-gray-300 rounded-lg mt-1" required>
+                </div>
+                <div class="mb-3">
+                    <label for="product-description" class="block text-gray-700 font-semibold">Description</label>
+                    <textarea id="product-description" name="description" class="w-full p-1 border border-gray-300 rounded-lg mt-1 h-20" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="product-image" class="block text-gray-700 font-semibold">Product Image</label>
+                    <input type="file" id="product-image" name="image" class="w-full p-1 border border-gray-300 rounded-lg mt-1" required>
+                </div>
+                <div class="flex justify-between">
+                    <button type="button" id="close-modal" class="bg-red-500 text-white px-4 py-2 rounded-full text-lg hover:bg-red-600 transition duration-300">Close</button>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-full text-lg hover:bg-indigo-700 transition duration-300">Add Product</button>
+                </div>
             </form>
         </div>
     </div>
+
+    <script>
+        // Check for 'success' query parameter in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('success')) {
+            alert('Product added successfully!');  // Show success alert
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
 
     <script>
         // Show Add Product Modal
@@ -79,137 +107,154 @@
             document.getElementById('add-product-modal').classList.add('hidden');
         });
 
-        // Handle Add Product Form Submit
-        document.getElementById('add-product-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const productName = document.getElementById('product-name').value;
-            const productPrice = document.getElementById('product-price').value;
-            const productDescription = document.getElementById('product-description').value;
-
-            // Send this data to the backend to save it in the database
-            console.log({
-                name: productName,
-                price: productPrice,
-                description: productDescription,
-            });
-
-            // Close the modal after submission
-            document.getElementById('add-product-modal').classList.add('hidden');
-        });
-
         // Function to load Products
         function loadProducts() {
-            const products = [
-                { id: 1, name: "Product 1", price: "$10", description: "This is product 1." },
-                { id: 2, name: "Product 2", price: "$20", description: "This is product 2." },
-            ];
-
-            const productTable = `
-                <table class="w-full table-auto border-collapse bg-white shadow-md rounded-lg">
-                    <thead>
-                        <tr class="bg-indigo-600 text-white">
-                            <th class="px-4 py-2">Name</th>
-                            <th class="px-4 py-2">Price</th>
-                            <th class="px-4 py-2">Description</th>
-                            <th class="px-4 py-2">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${products.map(product => `
-                            <tr class="hover:bg-gray-100">
-                                <td class="border px-4 py-2">${product.name}</td>
-                                <td class="border px-4 py-2">${product.price}</td>
-                                <td class="border px-4 py-2">${product.description}</td>
-                                <td class="border px-4 py-2">
-                                    <button class="bg-yellow-500 text-white p-2 rounded-lg hover:bg-yellow-600">Edit</button>
-                                    <button class="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600">Delete</button>
-                                </td>
+            fetch('/api/admin/products', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}` // Assuming token-based authentication
+                }
+            })
+            .then(response => response.json())
+            .then(products => {
+                const productTable = `
+                    <table class="w-full table-auto border-collapse bg-white shadow-md rounded-lg">
+                        <thead>
+                            <tr class="bg-indigo-600 text-white">
+                                <th class="px-4 py-2">Name</th>
+                                <th class="px-4 py-2">Category</th>
+                                <th class="px-4 py-2">Price</th>
+                                <th class="px-4 py-2">Description</th>
+                                <th class="px-4 py-2">Actions</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-
-            document.getElementById('products-list').innerHTML = productTable;
+                        </thead>
+                        <tbody>
+                            ${products.map(product => `
+                                <tr class="hover:bg-gray-100">
+                                    <td class="border px-4 py-2">${product.name}</td>
+                                    <td class="border px-4 py-2">${product.category}</td>
+                                    <td class="border px-4 py-2">₹${product.price}</td>
+                                    <td class="border px-4 py-2">${product.description}</td>
+                                    <td class="border px-4 py-2 flex items-center justify-center space-x-2">
+                                        <a href="/edit-product/${product._id}?source=admin" 
+                                           class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 w-20 text-center">
+                                            Edit
+                                        </a>
+                                        <button class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 w-20" 
+                                                onclick="confirmDelete('${product._id}')">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById('products-list').innerHTML = productTable;
+            })
+            .catch(error => console.error('Error fetching products:', error));
         }
+
+    async function confirmDelete(productId) {
+      const confirmed = confirm("Are you sure you want to delete this product?");
+      if (confirmed) {
+        await deleteProduct(productId);
+      }
+    }
+
+    async function deleteProduct(productId) {
+      try {
+        const response = await fetch(`/api/admin/products/${productId}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          alert('Product deleted successfully');
+          location.reload(); 
+        } else {
+          alert('Error deleting product');
+        }
+      } catch (error) {
+      console.error('Error during deletion:', error);
+      alert('An unexpected error occurred. Please try again.');
+      }
+    }
 
         // Function to load Orders
         function loadOrders() {
-            const orders = [
-                { orderId: 1, customerName: "John Doe", total: "$30", status: "Pending" },
-                { orderId: 2, customerName: "Jane Smith", total: "$50", status: "Shipped" },
-            ];
-
-            const orderTable = `
-                <table class="w-full table-auto border-collapse bg-white shadow-md rounded-lg">
-                    <thead>
-                        <tr class="bg-indigo-600 text-white">
-                            <th class="px-4 py-2">Order ID</th>
-                            <th class="px-4 py-2">Customer</th>
-                            <th class="px-4 py-2">Total</th>
-                            <th class="px-4 py-2">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${orders.map(order => `
-                            <tr class="hover:bg-gray-100">
-                                <td class="border px-4 py-2">${order.orderId}</td>
-                                <td class="border px-4 py-2">${order.customerName}</td>
-                                <td class="border px-4 py-2">${order.total}</td>
-                                <td class="border px-4 py-2">${order.status}</td>
+            fetch('/api/admin/orders', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(orders => {
+                const orderTable = `
+                    <table class="w-full table-auto border-collapse bg-white shadow-md rounded-lg">
+                        <thead>
+                            <tr class="bg-indigo-600 text-white">
+                                <th class="px-4 py-2">Order ID</th>
+                                <th class="px-4 py-2">Customer</th>
+                                <th class="px-4 py-2">Total</th>
+                                <th class="px-4 py-2">Status</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-
-            document.getElementById('orders-list').innerHTML = orderTable;
+                        </thead>
+                        <tbody>
+                            ${orders.map(order => `
+                                <tr class="hover:bg-gray-100">
+                                    <td class="border px-4 py-2">${order.orderId}</td>
+                                    <td class="border px-4 py-2">${order.customerName}</td>
+                                    <td class="border px-4 py-2">${order.total}</td>
+                                    <td class="border px-4 py-2">${order.status}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById('orders-list').innerHTML = orderTable;
+            })
+            .catch(error => console.error('Error fetching orders:', error));
         }
 
         // Function to load Users
         function loadUsers() {
-            const users = [
-                { userId: 1, name: "Alice", email: "alice@example.com", role: "Admin" },
-                { userId: 2, name: "Bob", email: "bob@example.com", role: "User" },
-            ];
-
-            const userTable = `
-                <table class="w-full table-auto border-collapse bg-white shadow-md rounded-lg">
-                    <thead>
-                        <tr class="bg-indigo-600 text-white">
-                            <th class="px-4 py-2">User ID</th>
-                            <th class="px-4 py-2">Name</th>
-                            <th class="px-4 py-2">Email</th>
-                            <th class="px-4 py-2">Role</th>
-                            <th class="px-4 py-2">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${users.map(user => `
-                            <tr class="hover:bg-gray-100">
-                                <td class="border px-4 py-2">${user.userId}</td>
-                                <td class="border px-4 py-2">${user.name}</td>
-                                <td class="border px-4 py-2">${user.email}</td>
-                                <td class="border px-4 py-2">${user.role}</td>
-                                <td class="border px-4 py-2">
-                                    <button class="bg-yellow-500 text-white p-2 rounded-lg hover:bg-yellow-600">Edit</button>
-                                    <button class="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600">Delete</button>
-                                </td>
+            fetch('/api/admin/users', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(response => response.json())
+            .then(users => {
+                const userTable = `
+                    <table class="w-full table-auto border-collapse bg-white shadow-md rounded-lg">
+                        <thead>
+                            <tr class="bg-indigo-600 text-white">
+                                <th class="px-4 py-2">Name</th>
+                                <th class="px-4 py-2">Email</th>
+                                <th class="px-4 py-2">Role</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-
-            document.getElementById('users-list').innerHTML = userTable;
+                        </thead>
+                        <tbody>
+                            ${users.map(user => `
+                                <tr class="hover:bg-gray-100">
+                                    <td class="border px-4 py-2">${user.name}</td>
+                                    <td class="border px-4 py-2">${user.email}</td>
+                                    <td class="border px-4 py-2">${user.role}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById('users-list').innerHTML = userTable;
+            })
+            .catch(error => console.error('Error fetching users:', error));
         }
 
-        // Load data on page load
-        window.onload = () => {
+        // Load Products, Orders, and Users when the page is ready
+        document.addEventListener('DOMContentLoaded', function() {
             loadProducts();
             loadOrders();
             loadUsers();
-        }
+        });
     </script>
 
 </body>

@@ -7,38 +7,55 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
-  <!-- Navbar -->
-  <nav class="bg-blue-600 p-4">
-    <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
-      <ul class="flex space-x-4">
-        <li><a href="/" class="text-white hover:underline">Home</a></li>
-        <li><a href="/profile" class="text-white hover:underline">Profile</a></li>
-        <li><a href="/cart" class="text-white hover:underline">Cart</a></li>
-        <li><a href="/order-history" class="text-white hover:underline" id="orderHistory">Order History</a></li>
-        <li><a href="/logout" id="logoutLink" class="text-white hover:underline">Logout</a></li>
-      </ul>
-    </div>
-  </nav>
+<!-- Navbar -->
+<nav class="bg-blue-600 p-4">
+  <div class="container mx-auto flex justify-between items-center">
+    <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
+    <!-- Hamburger Menu -->
+    <button id="hamburgerMenu" class="text-white md:hidden focus:outline-none">
+      ☰
+    </button>
+    <ul class="hidden md:flex space-x-4 flex-wrap sm:flex-nowrap" id="navbarLinks">
+      <li><a href="/" class="text-white hover:underline py-2 px-4">Home</a></li>
+      <li><a href="/cart" class="text-white hover:underline py-2 px-4">Cart</a></li>
+      <li><a href="/order-history" class="text-white hover:underline py-2 px-4" id="orderHistory">Order History</a></li>
+      <li><a href="/logout" id="logoutLink" class="text-white hover:underline py-2 px-4">Logout</a></li>
+    </ul>
+  </div>
+  <!-- Hamburger Dropdown -->
+  <ul class="hidden bg-blue-600 p-4" id="dropdownMenu">
+    <li class="mb-2"><a href="/" class="text-white block hover:underline">Home</a></li>
+    <li class="mb-2"><a href="/cart" class="text-white block hover:underline">Cart</a></li>
+    <li class="mb-2"><a href="/order-history" class="text-white block hover:underline" id="orderHistory">Order History</a></li>
+    <li><a href="/logout" class="text-white block hover:underline" id="logoutLink">Logout</a></li>
+  </ul>
+</nav>
 
   <!-- Filters Section -->
   <div class="container mx-auto mt-6">
     <h2 class="text-3xl font-bold mb-4">Available Products</h2>
-    <div class="flex space-x-4 mb-6">
-      <select id="categoryFilter" class="p-2 border rounded">
-        <option value="">All Categories</option>
-        <option value="Electronics">Electronics</option>
-        <option value="Books">Books</option>
-        <option value="Clothing">Clothing</option>
-      </select>
-      <input type="number" id="minPriceFilter" placeholder="Min Price" class="p-2 border rounded">
-      <input type="number" id="maxPriceFilter" placeholder="Max Price" class="p-2 border rounded">
-      <!-- Add sorting by ratings -->
-      <select id="ratingSort" class="p-2 border rounded">
-        <option value="">Sort by Rating</option>
-        <option value="asc">Lowest to Highest</option>
-        <option value="desc">Highest to Lowest</option>
-      </select>
+    <div class="flex flex-wrap space-x-4 mb-6">
+      <div class="flex items-center mb-4 sm:mb-0">
+        <select id="categoryFilter" class="p-2 border rounded w-full sm:w-auto">
+          <option value="">All Categories</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Books">Books</option>
+          <option value="Clothing">Clothing</option>
+        </select>
+      </div>
+      <div class="flex items-center mb-4 sm:mb-0">
+        <input type="number" id="minPriceFilter" placeholder="Min Price" class="p-2 border rounded w-full sm:w-auto">
+      </div>
+      <div class="flex items-center mb-4 sm:mb-0">
+        <input type="number" id="maxPriceFilter" placeholder="Max Price" class="p-2 border rounded w-full sm:w-auto">
+      </div>
+      <div class="flex items-center mb-4 sm:mb-0">
+        <select id="ratingSort" class="p-2 border rounded w-full sm:w-auto">
+          <option value="">Sort by Rating</option>
+          <option value="asc">Lowest to Highest</option>
+          <option value="desc">Highest to Lowest</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -48,6 +65,13 @@
   </div>
 
   <script>
+    // Hamburger menu toggle
+    const hamburgerMenu = document.getElementById('hamburgerMenu');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    hamburgerMenu.addEventListener('click', () => {
+      dropdownMenu.classList.toggle('hidden');
+    });
+    
     document.addEventListener('DOMContentLoaded', () => {
       const categorySelect = document.getElementById('categoryFilter');
       const minPriceInput = document.getElementById('minPriceFilter');
@@ -57,7 +81,7 @@
 
       const fetchProducts = async () => {
         try {
-          const category = categorySelect.value;
+          const category = categorySelect.value.toLowerCase();
           const minPrice = minPriceInput.value;
           const maxPrice = maxPriceInput.value;
           const ratingSort = ratingSortSelect.value;
@@ -76,6 +100,7 @@
 
           // Populate products
           products.forEach(product => {
+            if(product.available > 0) {
             const productCard = `
               <div class="bg-white p-6 rounded-lg shadow-lg">
                 <img src="../${product.imageUrl}" alt="${product.name}" class="w-full h-40 object-cover mb-4 rounded-lg">
@@ -94,6 +119,7 @@
               </div>
             `;
             productContainer.innerHTML += productCard;
+            }
           });
         } catch (error) {
           console.error('Error loading products:', error);

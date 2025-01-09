@@ -12,23 +12,34 @@
   <nav class="bg-blue-600 p-4">
     <div class="container mx-auto flex justify-between items-center">
       <h1 class="text-white text-2xl font-bold">E-Commerce Website</h1>
-      <ul class="flex space-x-4">
+      <!-- Hamburger Menu for small screens -->
+      <button id="hamburgerMenu" class="text-white text-2xl md:hidden focus:outline-none">
+        ☰
+      </button>
+      <!-- Links -->
+      <ul id="navLinks" class="hidden md:flex space-x-4">
         <li><a href="/" class="text-white hover:underline">Home</a></li>
-        <li><a href="/profile" class="text-white hover:underline">Profile</a></li>
         <li><a href="/cart" class="text-white hover:underline">Cart</a></li>
         <li><a href="/order-history" class="text-white hover:underline" id="orderHistory">Order History</a></li>
         <li><a href="/logout" id="logoutLink" class="text-white hover:underline">Logout</a></li>
       </ul>
     </div>
+    <!-- Mobile Menu -->
+    <ul id="mobileMenu" class="hidden flex-col space-y-2 mt-4 bg-blue-700 p-4 rounded md:hidden">
+      <li><a href="/" class="text-white hover:underline block">Home</a></li>
+      <li><a href="/cart" class="text-white hover:underline block">Cart</a></li>
+      <li><a href="/order-history" class="text-white hover:underline block" id="orderHistoryMobile">Order History</a></li>
+      <li><a href="/logout" id="logoutLinkMobile" class="text-white hover:underline block">Logout</a></li>
+    </ul>
   </nav>
 
   <!-- Cart Items -->
   <div class="container mx-auto mt-6">
-    <h2 class="text-3xl font-bold mb-4">Your Cart</h2>
+    <h2 class="text-3xl font-bold mb-4 text-center">Your Cart</h2>
     <div id="cartItems" class="space-y-4">
       <!-- Cart items will be displayed here -->
     </div>
-    <div class="mt-6">
+    <div class="mt-6 text-center">
       <p class="text-xl font-bold">Total: ₹<span id="totalPrice">0.00</span></p>
     </div>
     <div class="mt-6 text-center">
@@ -39,6 +50,14 @@
   </div>
 
   <script>
+    // Handle the hamburger menu toggle
+    const hamburgerMenu = document.getElementById('hamburgerMenu');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    hamburgerMenu.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
     async function fetchCart() {
       try {
         const response = await fetch('/api/get-cart');
@@ -101,21 +120,29 @@
         cartItemsContainer.innerHTML = cart.map(item => {
           totalPrice += item.price * item.quantity;
           return `
-            <div class="flex justify-between items-center bg-white p-4 rounded shadow-lg">
-              <div class="flex items-center">
-                <img src="../${item.imageUrl}" alt="${item.name}" class="w-16 h-16 rounded mr-4">
-                <span>${item.name}</span>
-              </div>
-              <div class="flex items-center">
-                <button onclick="updateQuantity('${item.productId}', ${item.quantity - 1})" 
-                        class="text-xl font-bold text-red-600 px-2">-</button>
-                <span class="mx-2">Quantity: ${item.quantity}</span>
-                <button onclick="updateQuantity('${item.productId}', ${item.quantity + 1})" 
-                        class="text-xl font-bold text-green-600 px-2">+</button>
-                <span class="ml-4">₹${(item.price * item.quantity).toFixed(2)}</span>
+          <div class="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded shadow-lg w-full sm:w-full md:w-2/3 lg:w-1/2 mx-auto mb-4">
+            <div class="flex items-center">
+              <img src="../${item.imageUrl}" alt="${item.name}" class="w-16 h-16 rounded mr-4">
+              <div class="flex flex-col">
+                <span class="font-bold uppercase">${item.name}</span>
+                <span class="text-sm font-bold uppercase text-gray-600 mt-1">${item.category}</span>
+                <span class="text-sm text-yellow-500 font-bold mt-1">Rating: ${item.rating}</span>
               </div>
             </div>
-          `;
+            <div class="flex flex-col items-start md:items-center space-y-2 md:space-y-0 md:flex-row md:space-x-4">
+              <div class="flex items-center">
+                <div class="flex items-center mt-2 md:mt-0">
+                  <button onclick="updateQuantity('${item.productId}', ${item.quantity - 1})" 
+                          class="text-xl font-bold text-red-600 px-2">-</button>
+                  <span class="mx-2">Quantity: ${item.quantity}</span>
+                  <button onclick="updateQuantity('${item.productId}', ${item.quantity + 1})" 
+                          class="text-xl font-bold text-green-600 px-2">+</button>
+                </div>
+              </div>
+              <span class="font-bold text-gray-700 mt-2 md:mt-0">₹${(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+          </div>
+        `;
         }).join('');
 
         document.getElementById('totalPrice').innerText = totalPrice.toFixed(2);
@@ -149,9 +176,11 @@
         const result = await response.json();
 
         if (result.success) {
+          const orderId = result.order.order_id; // Get orderId from backend response
+          console.log("Order ID:", orderId);
           alert('Order placed successfully!');
           // Redirect to the checkout page or order confirmation page
-          window.location.href = '/checkOut';
+          window.location.href = `/checkOut?orderId=${orderId}`;
         } else {
           alert(result.error || 'Checkout failed. Please try again.');
     }
