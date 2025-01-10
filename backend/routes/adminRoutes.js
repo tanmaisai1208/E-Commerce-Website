@@ -101,13 +101,18 @@ router.get('/api/admin/products', adminAuth, async (req, res) => {
 // Get all orders
 router.get('/api/admin/orders', adminAuth, async (req, res) => {
     try {
-        const orders = await Order.find();
+        const orders = await Order.find().populate({
+            path: 'userId', // Populate the userId field
+            select: 'name', // Fetch only the 'name' field from the User collection
+        });
+
         res.json(orders);
     } catch (err) {
         console.error(err);
         res.status(500).send('Error fetching orders.');
     }
 });
+
 
 // Get all users
 router.get('/api/admin/users', adminAuth, async (req, res) => {

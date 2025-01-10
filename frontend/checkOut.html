@@ -175,7 +175,7 @@
                   $.ajax({
                     url: "/api/update-order-status",  // New route to update order status
                     type: "POST",
-                    data: { orderId: res.order_id },
+                    data: { orderId: res.orderId },
                     success: function(updateRes) {
                       if (updateRes.success) {
                         // Redirect to confirmation page after updating order status

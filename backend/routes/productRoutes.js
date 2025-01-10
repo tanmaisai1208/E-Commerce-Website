@@ -458,6 +458,7 @@ router.post('/api/checkout', async (req, res) => {
   const newOrder = new Order({
     userId,
     order_id: orderId, // Add the order_id field here
+    razorpay_order_id: null,
     orderDetails: updatedCartItems, // Store the updated cart items with prices
     totalPrice,
     paymentMethod,
@@ -490,26 +491,31 @@ router.post('/api/initiate-payment', async (req, res) => {
     // Create an order on Razorpay
     const options = {
       // order_id: order.order_id,
-      order_id: orderId,
+      // order_id: orderId,
       amount: amountInPaisa,
       currency: 'INR', // Set the currency
       receipt: `receipt_${Date.now()}`, // Generate a unique receipt ID
     };
     console.log('Razorpay options:', options);
-    razorpayInstance.orders.create(options, (err, order) => {
+    razorpayInstance.orders.create(options, async (err, razorpayOrder) => {
       if (err) {
         console.error('Error creating Razorpay order:', err);
         return res.status(500).json({ success: false, msg: 'Failed to create payment order' });
       }
 
-      // Send the order details to the frontend for further processing
+      // Update the Razorpay order_id in the database
+      await Order.findOneAndUpdate(
+        { order_id: orderId }, // Match the internal order ID
+        { razorpay_order_id: razorpayOrder.id } // Save Razorpay's order ID
+      );
+
       res.status(200).json({
         success: true,
-        order_id: orderId,
-        // order_id: order.order_id, // Use the order ID from the Razorpay response
-        amount: order.amount,
-        currency: order.currency,
-        key_id: RAZORPAY_ID_KEY, // Pass the Razorpay key ID to the frontend
+        order_id: razorpayOrder.id,
+        orderId: orderId,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        key_id: RAZORPAY_ID_KEY,
       });
     });
   } catch (error) {
@@ -558,17 +564,39 @@ router.post('/api/clear-cart', (req, res) => {
 // Order History Route
 router.get('/api/order-history', async (req, res) => {
   const userId = req.session.user; // Ensure user is logged in
+  const user_Id = userId?._id;
+
   if (!userId) {
     return res.status(401).json({ error: 'User not logged in' });
   }
+
   try {
-    const orders = await Order.find({ userId: userId }).populate('orderDetails.productId');
-    res.json(orders);
+    // Find orders for the user and populate product details in orderDetails
+    const orders = await Order.find({ userId: user_Id }).populate({
+      path: 'orderDetails.productId',
+      select: 'name', // Only fetch the 'name' field of the product
+    });
+
+    // Format orders to include item names
+    const formattedOrders = orders.map(order => ({
+      order_id: order.order_id,
+      createdAt: order.createdAt,
+      totalPrice: order.totalPrice,
+      status: order.status,
+      items: order.orderDetails.map(item => ({
+        name: item.productId?.name || 'Product Name Not Found', // Handle missing product
+        quantity: item.quantity,
+        price: item.price,
+      })),
+    }));
+
+    res.json(formattedOrders);
   } catch (error) {
     console.error('Error fetching order history:', error);
     res.status(500).json({ error: 'Error fetching order history' });
   }
 });
+
 
 // Get User Profile
 router.get('/api/get-profile', async (req, res) => {
