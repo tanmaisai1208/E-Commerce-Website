@@ -6,15 +6,18 @@ const Review = require('../models/review');
 const Order = require('../models/order');
 const multer = require('multer'); // For handling image uploads
 const path = require('path');
+const fs = require('fs');
 const Razorpay = require('razorpay');
 const order = require('../models/order');
-
+const puppeteer = require('puppeteer');
 
 const { RAZORPAY_ID_KEY, RAZORPAY_SECRET_KEY } = process.env;
 const razorpayInstance = new Razorpay({
   key_id: RAZORPAY_ID_KEY,
   key_secret: RAZORPAY_SECRET_KEY,
 });
+
+const { loadScrapedData } = require('../services/scraper');
 
 // Set up multer for image upload
 const storage = multer.diskStorage({
@@ -27,8 +30,9 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
 const SECRET_PASSWORD = '@123';
+
+const scrapedData = JSON.parse(fs.readFileSync(path.join(__dirname, '../services/scrapedData.json')));
 
 // Route: Become Admin
 router.post('/become-admin', async (req, res) => {
@@ -639,5 +643,74 @@ router.post('/api/update-profile', async (req, res) => {
     res.status(500).json({ error: 'Error updating profile' });
   }
 });
+
+// Route to compare product details with scraped data
+router.get('/api/compare/:productId', async (req, res) => {
+  const { productId } = req.params;
+  try {
+    // Fetch the product from the database using the productId
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Load the scraped data from the file
+    const scrapedData = loadScrapedData();
+
+    // Get the product name from the database
+    const productName = product.name.toLowerCase(); // Case insensitive comparison
+    const productWords = productName.split(' '); // Split the product name into individual words
+
+    // Filter the scraped data to find matching descriptions (must have all words from product name)
+    const comparison = scrapedData.filter((item) => {
+      // Convert the description to lowercase for case-insensitive comparison
+      const description = item.description.toLowerCase();
+
+      // Check if atleast one product name words are found in the description
+      return productWords.some((word) => description.includes(word));
+    });
+
+    if (comparison.length === 0) {
+      return res.status(404).json({ message: 'No comparison data found for this product' });
+    }
+
+    // Prepare comparison data
+    const comparisonResult = comparison.map((comparisonProduct) => ({
+      product: {
+        name: product.name,
+        price: product.price,
+        link: product.link,
+        description: product.description,
+      },
+      comparison: {
+        description: comparisonProduct.description,
+        price: comparisonProduct.price,
+        link: comparisonProduct.link,
+        source: comparisonProduct.source || 'Unknown', // Assuming 'source' is included in the scraped data
+      },
+    }));
+
+    // Send the comparison data back
+    res.json({ product: comparisonResult });
+
+  } catch (error) {
+    console.error('Error comparing product:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+// Dummy function to simulate fetching a product by ID
+async function getProductById(productId) {
+  // Replace this with actual logic to fetch the product from your database or product list
+  return {
+    _id: productId,
+    name: 'Sample Product',
+    price: 100,
+    description: 'A great product for testing.',
+    // Add any other product fields as needed
+  };
+}
 
 module.exports = router;

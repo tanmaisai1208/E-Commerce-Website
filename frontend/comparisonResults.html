@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparison Results</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <!-- Navbar -->
+  <nav class="bg-blue-600 p-4 shadow-md">
+    <div class="container mx-auto">
+      <h1 class="text-white text-2xl font-bold text-center">E-commerce Website</h1>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="max-w-4xl mx-auto p-6 mt-6">
+    <h1 class="text-3xl font-bold text-center text-gray-900 mb-6">Comparison Results</h1>
+    <div id="comparisonResults" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Comparison results will be dynamically inserted here -->
+    </div>
+  </div>  
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const comparisonResultsContainer = document.getElementById('comparisonResults');
+
+      // Retrieve the comparison data from session storage
+      const comparisonData = JSON.parse(sessionStorage.getItem('comparisonResults'));
+
+      if (!comparisonData || comparisonData.length === 0) {
+        comparisonResultsContainer.innerHTML = '<p class="text-center text-xl text-gray-500">No comparison data available.</p>';
+        return;
+      }
+
+      // Dynamically generate the comparison results
+      comparisonData.forEach((entry) => {
+        const { product, comparison } = entry;
+
+        const resultCard = document.createElement('div');
+        resultCard.classList.add(
+          'bg-white',
+          'p-6',
+          'rounded-lg',
+          'shadow-lg',
+          'border',
+          'border-gray-200',
+          'hover:shadow-2xl',
+          'hover:scale-105',
+          'transition',
+          'transform',
+          'duration-500',
+          // 'hover:-translate-y-1'
+        );
+
+        resultCard.innerHTML = `
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">${product.name}</h2>
+          <p class="text-lg text-gray-600 mb-2">${product.description}</p>
+          <p class="text-lg text-gray-600 mb-2">Original Price: <span class="font-semibold text-blue-500">$${product.price}</span></p>
+          <div class="border-t border-gray-300 mt-4 pt-4">
+            <h3 class="text-lg font-semibold text-gray-700">Comparison Product:</h3>
+            <p class="text-gray-600 mb-2">${comparison.description}</p>
+            <p class="text-lg text-gray-600 mb-2">Price: <span class="font-semibold text-blue-500">${comparison.price}</span></p>
+            <p class="text-gray-600">Source: <span class="font-semibold text-gray-800">${comparison.source}</span></p>
+            <a href="${comparison.link}" class="text-blue-500 hover:underline mt-4 block">View Comparison Product</a>
+          </div>
+        `;
+
+        comparisonResultsContainer.appendChild(resultCard);
+      });
+    });
+  </script>
+</body>
+</html>

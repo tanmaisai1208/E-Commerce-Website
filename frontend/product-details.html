@@ -102,6 +102,9 @@
             <button id="addToCartBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                 Add to Cart
             </button>
+            <button id="compareBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Compare
+            </button>
           </div>
         </div>
       `;
@@ -131,7 +134,42 @@
             console.error('Error adding product to cart:', error);
         }
       });
+
+      document.getElementById('compareBtn').addEventListener('click', () => {
+        console.log('compare called');
+        const productId = window.location.pathname.split('/').pop();
+        compareProduct(productId);
+      });
     }
+
+    async function compareProduct(productId) {
+      // console.log('called');
+      try {
+        const response = await fetch(`/api/compare/${productId}`);
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            // Save an empty array in session storage to indicate no comparison data
+            sessionStorage.setItem('comparisonResults', JSON.stringify([]));
+            window.location.href = '/comparisonResults';
+        return;
+          } else {
+            throw new Error('Failed to fetch comparison data');
+          }
+          return; // Exit the function early
+        }
+
+        const comparisonData = await response.json();
+
+        // Save the comparison data to session storage
+        sessionStorage.setItem('comparisonResults', JSON.stringify(comparisonData.product));
+
+        // Redirect to the comparison results page
+        window.location.href = '/comparisonResults';
+          } catch (error) {
+            console.error('Error comparing product:', error);
+          }
+        }
 
     async function fetchProductReviews(productId) {
       try {
@@ -238,7 +276,7 @@
 
     async function updateReview(reviewId, reviewText, rating) {
       try {
-        const response = await fetch(`/api/update-review/${reviewId}`, {
+        const response = await fetch(`/api/edit-review/${reviewId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

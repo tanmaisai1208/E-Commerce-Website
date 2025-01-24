@@ -130,6 +130,10 @@ app.get("/profile", isAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/profile.html")); 
 });
 
+app.get("/comparisonResults", isAuth, (req, res) => { 
+  res.sendFile(path.join(__dirname, "../frontend/comparisonResults.html")); 
+});
+
 // Route for register page
 app.get("/register", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/register.html"));
