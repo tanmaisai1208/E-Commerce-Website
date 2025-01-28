@@ -99,7 +99,16 @@
         if (result.success) {
           fetchCart(); // Re-fetch cart to update the UI
         } else {
-          alert('Failed to update quantity.');
+          // Display different alerts based on the error message
+          if (result.message === "Quantity cannot be less than 1") {
+            alert("The quantity must be at least 1.");
+          } else if (result.message === "Product quantity out of stock") {
+            alert("The requested quantity exceeds available stock.");
+          } else if (result.message === "Product not found in cart") {
+            alert("The product is not in your cart.");
+          } else {
+            alert("Failed to update quantity.");
+          }
         }
       } catch (error) {
         console.error('Error updating quantity:', error);

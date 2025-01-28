@@ -190,6 +190,24 @@
                     }
                   });
 
+                  // Update product quantities after successful payment
+                  $.ajax({
+                    url: "/api/update-product-quantities",
+                    type: "POST",
+                    data: { orderId: res.orderId },
+                    success: function (quantityUpdateRes) {
+                      if (quantityUpdateRes.success) {
+                        console.log('Product quantities updated:', quantityUpdateRes);
+                      } else {
+                        alert('Error updating product quantities.');
+                      }
+                    },
+                    error: function (err) {
+                      console.error('Error updating product quantities:', err);
+                      alert("An error occurred while updating product quantities.");
+                    }
+                  });
+
                   // Clear the cart on the backend
                   $.ajax({
                     url: "/api/clear-cart", // New endpoint to clear the cart

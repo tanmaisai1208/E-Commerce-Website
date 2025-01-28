@@ -86,7 +86,7 @@ router.get('/api/get-user-role', (req, res) => {
 router.get('/api/products', async (req, res) => {
   try {
     const { category, minPrice, maxPrice, ratingSort } = req.query;
-    const filter = {};
+    const filter = { available: { $gt: 0 } };
 
     if (category) {
       filter.category = category;
@@ -296,9 +296,13 @@ router.delete('/api/remove-from-cart/:productId', async (req, res) => {
 
 router.put('/api/update-cart-quantity', async (req, res) => {
   const { productId, quantity } = req.body;
+  const product = await Product.findById(productId);
 
   if (quantity < 1) {
     return res.status(400).json({ success: false, message: "Quantity cannot be less than 1" });
+  }
+  if (quantity > product.available) {
+    return res.status(400).json({ success: false, message: "Product quantity out of stock" });
   }
 
   if (req.session.cart) {
@@ -542,15 +546,47 @@ router.post('/api/update-order-status', async (req, res) => {
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
-    console.log('order found');
     // Update the status to 'Completed'
     order.status = "Completed";
     await order.save();  // Save the updated order
-    console.log('updated');
     res.json({ success: true, message: 'Order status updated to completed' });
   } catch (error) {
     console.error('Error updating order status:', error);
     res.status(500).json({ error: 'Failed to update order status' });
+  }
+});
+
+// Route to update product quantities after a successful payment
+router.post('/api/update-product-quantities', async (req, res) => {
+  const { orderId } = req.body;
+
+  if (!orderId) {
+    return res.status(400).json({ error: 'Order ID is required' });
+  }
+
+  try {
+    // Find the order by orderId
+    const order = await Order.findOne({ order_id: orderId });
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Loop through the order items and update product quantities
+    for (const item of order.orderDetails) {
+      const product = await Product.findById(item.productId);
+      if (product) {
+        product.available -= item.quantity; // Decrease the product quantity
+        if (product.quantity < 0) {
+          product.quantity = 0; // Prevent negative stock
+        }
+        await product.save(); // Save the updated product
+      }
+    }
+
+    res.json({ success: true, message: 'Product quantities updated successfully' });
+  } catch (error) {
+    console.error('Error updating product quantities:', error);
+    res.status(500).json({ error: 'Failed to update product quantities' });
   }
 });
 

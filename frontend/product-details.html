@@ -297,6 +297,25 @@
       }
     }
 
+    // Handle logout functionality
+    document.getElementById('logoutLink').addEventListener('click', async function(event) {
+      event.preventDefault();
+      
+      try {
+        const response = await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+        if (response.ok) {
+          // Redirect to the homepage after successful logout
+          window.location.href = '/';
+        } else {
+          console.error('Logout failed');
+          alert('Error logging out. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error during logout:', error);
+        alert('An unexpected error occurred. Please try again.');
+      }
+    });
+    
     // Initialize page
     fetchProductDetails();
   </script>
