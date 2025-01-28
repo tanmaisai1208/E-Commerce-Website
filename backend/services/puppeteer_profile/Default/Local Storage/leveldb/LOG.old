@@ -1,8 +1,5 @@
-2025/01/28-21:47:28.696 27f8 Reusing MANIFEST C:\Users\tanma\OneDrive\my_projects\E-commerce-website\backend\services\puppeteer_profile\Default\Local Storage\leveldb/MANIFEST-000001
-2025/01/28-21:47:28.705 27f8 Recovering log #85
-2025/01/28-21:47:28.705 27f8 Level-0 table #88: started
-2025/01/28-21:47:28.757 27f8 Level-0 table #88: 45202 bytes OK
-2025/01/28-21:47:28.813 27f8 Delete type=0 #85
-2025/01/28-21:48:28.877 5ab4 Level-0 table #91: started
-2025/01/28-21:48:28.892 5ab4 Level-0 table #91: 646977 bytes OK
-2025/01/28-21:48:28.895 5ab4 Delete type=0 #89
+2025/01/28-21:53:17.718 5018 Reusing MANIFEST C:\Users\tanma\OneDrive\my_projects\E-commerce-website\backend\services\puppeteer_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2025/01/28-21:53:17.729 5018 Recovering log #90
+2025/01/28-21:53:17.738 5018 Level-0 table #93: started
+2025/01/28-21:53:17.811 5018 Level-0 table #93: 1037975 bytes OK
+2025/01/28-21:53:17.844 5018 Delete type=0 #90
