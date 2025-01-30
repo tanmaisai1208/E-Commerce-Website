@@ -34,6 +34,7 @@ This is a fully functional **E-Commerce Website** built using **HTML, Tailwind C
 ```bash
 git clone https://github.com/your-username/E-Commerce-Website.git
 cd E-Commerce-Website
+```bash
 
 ### 2. Install Dependencies
 ```bash
