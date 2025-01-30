@@ -54,3 +54,17 @@ RAZORPAY_SECRET=your_razorpay_api_secret
 node backend/server.js
 ```
 The application will run at http://localhost:3000
+
+
+## Usage
+
+### User Features:
+- Register and log in as a user.
+- Browse products and use the search/filter feature.
+- Add items to the cart and proceed to checkout.
+  
+### Admin Features:
+- Manage products and orders via the dashboard.
+
+### AI-Driven Price Comparison:
+- The Chrome extension fetches and compares prices from different sources.
