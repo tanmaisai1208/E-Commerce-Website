@@ -40,3 +40,17 @@ cd E-Commerce-Website
 ```bash
 npm install
 ```
+
+### 3. Set Up Environment Variables
+```bash
+MONGO_URI=your_mongodb_connection_string
+SESSION_SECRET=your_secret_key
+RAZORPAY_KEY=your_razorpay_api_key
+RAZORPAY_SECRET=your_razorpay_api_secret
+```
+
+### 4. Start the server
+```bash
+node backend/server.js
+```
+The application will run at http://localhost:3000
