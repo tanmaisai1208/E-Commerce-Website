@@ -68,3 +68,17 @@ The application will run at http://localhost:3000
 
 ### AI-Driven Price Comparison:
 - The Chrome extension fetches and compares prices from different sources.
+
+
+## Folder Structure
+```bash
+E-Commerce-Website/
+│── frontend/            # Frontend HTML, CSS, JS files  
+│── backend/             # Backend logic  
+│── models/              # Database models (MongoDB schemas)  
+│── routes/              # Express routes  
+│── public/              # Static files (images, styles, scripts)  
+│── server.js            # Main server file  
+│── package.json         # Project dependencies  
+│── README.md            # Documentation  
+```
