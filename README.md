@@ -107,9 +107,11 @@ E-Commerce-Website/
 |--------|----------------------|------------------------------------------------------|
 | GET    | `/api/products`       | Get all products.                                   |
 | GET    | `/api/products/:id`   | Get a single product by ID.                         |
-| POST   | `/api/products`       | Add a new product (Admin only).                     |
+| POST   | `/api/create-product` | Add a new product (Admin only).                     |
 | PUT    | `/api/products/:id`   | Update a product (Admin only).                      |
 | DELETE | `/api/products/:id`   | Delete a product (Admin only).                      |
+| POST   | `/api/add-to-cart`    | Add products to the cart                            |
+| GET   | `/api/get-cart`        | GEt the products present in the cart                |
 | POST   | `/api/checkout`       | Handle the checkout process (place an order).       |
 | POST   | `/api/initiate-payment` | Initiate Razorpay payment for an order.             |
 | POST   | `/api/update-order-status` | Update the order status after payment.            |
