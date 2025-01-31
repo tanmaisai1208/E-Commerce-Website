@@ -3,13 +3,21 @@
 ## Overview
 This is a fully functional **E-Commerce Website** built using **HTML, Tailwind CSS, JavaScript (Frontend)** and **Node.js, Express.js, MongoDB (Backend)**. It includes features like **user authentication, product listings, cart functionality, checkout, and an AI-driven price comparison extension**.
 
-## Features
-- ✅ **User Authentication** – Registration & Login system with session-based authentication.  
-- ✅ **Product Listing & Search** – Search and filter products efficiently.  
-- ✅ **Shopping Cart & Checkout** – Add/remove items and complete the purchase.  
-- ✅ **Payment Integration** – Secure payments handled using RazorPay.  
-- ✅ **Admin Dashboard** – Manage products, orders, and users.  
-- ✅ **AI-Driven Price Comparison** – Chrome extension for comparing prices using Puppeteer web scraping.  
+## Key Functionalities
+### 🛍️ User Functionalities
+- **User Authentication** – Register, login, and session-based authentication.  
+- **Product Browsing & Search** – View product listings with advanced filtering.  
+- **Shopping Cart & Checkout** – Add/remove items and proceed to secure checkout.  
+- **Payment Integration** – RazorPay for seamless transactions.  
+
+### 🛠️ Admin Functionalities
+- **Product Management** – Add, update, and remove products.  
+- **Order Management** – View and manage user orders.  
+
+### 🤖 AI-Driven Price Comparison
+- **Web Scraping** – Uses Puppeteer to fetch and compare product prices from different websites.  
+- **Automated Data Storage** – Scraped data is stored in `scrapedData.json`.  
+
 
 ## Tech Stack
 
