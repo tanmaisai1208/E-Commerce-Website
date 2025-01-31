@@ -100,6 +100,38 @@ E-Commerce-Website/
 │── package-lock.json   # Dependency lock file  
 ```
 
+## API Endpoints
+
+### 🛍️ Product Routes (`productRoute.js`)
+| Method | Endpoint             | Description                                          |
+|--------|----------------------|------------------------------------------------------|
+| GET    | `/api/products`       | Get all products.                                   |
+| GET    | `/api/products/:id`   | Get a single product by ID.                         |
+| POST   | `/api/products`       | Add a new product (Admin only).                     |
+| PUT    | `/api/products/:id`   | Update a product (Admin only).                      |
+| DELETE | `/api/products/:id`   | Delete a product (Admin only).                      |
+| POST   | `/api/checkout`       | Handle the checkout process (place an order).       |
+| POST   | `/api/initiate-payment` | Initiate Razorpay payment for an order.             |
+| POST   | `/api/update-order-status` | Update the order status after payment.            |
+| POST   | `/api/update-product-quantities` | Update product quantities after a successful payment. |
+| POST   | `/api/clear-cart`     | Clear the user's cart.                              |
+| GET    | `/api/order-history`  | Get order history for the logged-in user.           |
+| GET    | `/api/get-profile`    | Get the profile information of the logged-in user.  |
+| POST   | `/api/update-profile` | Update the profile of the logged-in user.           |
+| GET    | `/api/compare/:productId` | Compare product details with scraped data.          |
+
+
+### 🔧 Admin Routes (`adminRoute.js`)
+| Method | Endpoint             | Description                                          |
+|--------|----------------------|------------------------------------------------------|
+| GET    | `/api/admin/products` | Get all products (Admin only).                       |
+| POST   | `/api/admin/products` | Add a new product (Admin only).                      |
+| PUT    | `/api/admin/products/:id` | Update a product (Admin only).                      |
+| DELETE | `/api/admin/products/:id` | Delete a product (Admin only).                      |
+| GET    | `/api/admin/orders`   | Get all orders (Admin only).                         |
+| GET    | `/api/admin/users`    | Get all users (Admin only).                          |
+
+
 ## Contributing
 ### Steps to Contribute
 
