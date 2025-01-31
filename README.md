@@ -73,12 +73,40 @@ The application will run at http://localhost:3000
 ## Folder Structure
 ```bash
 E-Commerce-Website/
-│── frontend/            # Frontend HTML, CSS, JS files  
-│── backend/             # Backend logic  
-│── models/              # Database models (MongoDB schemas)  
-│── routes/              # Express routes  
-│── public/              # Static files (images, styles, scripts)  
-│── server.js            # Main server file  
-│── package.json         # Project dependencies  
-│── README.md            # Documentation  
+│── backend/            # Backend-related files  
+│   ├── middleware/     # Middleware functions  
+│   ├── models/         # Database models (MongoDB schemas)  
+│   ├── routes/         # Express routes  
+│   ├── services/       # Web scraping scripts and scraped data storage  
+│   │   ├── scraper.js  # Puppeteer-based web scraper  
+│   │   ├── scrapedData.json  # JSON file storing scraped data  
+│   ├── server.js       # Main server file  
+│  
+│── frontend/           # Frontend HTML, CSS, JS files  
+│── images/             # Image assets  
+│── node_modules/       # Node.js dependencies  
+│── uploads/            # Uploaded files  
+│── .gitignore          # Git ignore file  
+│── README.md           # Documentation  
+│── package.json        # Project dependencies  
+│── package-lock.json   # Dependency lock file  
+```
+
+## Contributing
+### Steps to Contribute
+
+- Fork the repository
+- Create a new branch
+```bash
+git checkout -b feature-branch
+```
+
+- Make your changes and commit them
+```bash
+git commit -m "Added new feature"
+```
+
+- Push to the branch
+```bash
+git push origin feature-branch
 ```
