@@ -156,8 +156,8 @@ router.get('/api/product/:id', async (req, res) => {
 // Update an existing product
 router.post('/api/update-product/:id', upload.single('image'), async (req, res) => {
   try {
-    const { name, category, price, description } = req.body;
-    const updateData = { name, category, price, description };
+    const { name, category, price, description, available } = req.body;
+    const updateData = { name, category, price, description, available };
 
     if (req.file) {
       updateData.imageUrl = req.file.path.replace(/\\/g, '/'); // Update image URL if a new image is uploaded
